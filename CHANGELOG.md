@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.21 (2025-12-19)
+
+* (MU6.4) Fix admin JSONConfig tables: convert table column definitions to array format expected by ioBroker Admin.
+* (MU6.3) Provide `admin/jsonConfig.json` and align admin UI config.
+* (MU6.2) Add diagnostics rate limiting to reduce log spam and GUI load.
+* (MU6.1) Add optional diagnostics logging (states + debug logs).
+
 ## 0.0.20 (2025-12-19)
 - MU6.3: Fixed Admin JSON config filename (added admin/jsonConfig.json) so instance settings are visible.
 

@@ -1,148 +1,148 @@
 {
-    "common": {
-        "name": "nexowatt-multiuse",
-        "version": "0.0.20",
-        "news": {
-            "0.0.1": {
-                "en": "Initial architecture skeleton: module manager and schedulers.",
-                "de": "Initiales Architektur-Grundgerüst: Modul-Manager und Scheduler.",
-                "ru": "Начальный каркас архитектуры: менеджер модулей и планировщики.",
-                "pt": "Esqueleto inicial de arquitetura: gerenciador de módulos e agendadores.",
-                "nl": "Initiële architectuurskelet: modulemanager en schedulers.",
-                "fr": "Squelette d'architecture initiale: gestionnaire de modules et planificateurs.",
-                "it": "Scheletro iniziale dell'architettura: gestore moduli e scheduler.",
-                "es": "Esqueleto inicial de arquitectura: gestor de módulos y programadores.",
-                "pl": "Początkowy szkielet architektury: menedżer modułów i harmonogramy.",
-                "uk": "Початковий каркас архітектури: менеджер модулів і планувальники.",
-                "zh-cn": "初始架构骨架：模块管理器与调度器。"
-            },
-            "0.0.7": {
-                "en": "Step 1.5: Actuator table + priority control for Peak Shaving (optional actuation).",
-                "de": "Schritt 1.5: Aktor-Tabelle + Prioritätsregelung für Lastspitzenkappung (optionale Aktorik)."
-            },
-            "0.0.9": {
-                "en": "Step 2.2: Charging Management priority distribution (budget modes, wallbox setpoints).",
-                "de": "Schritt 2.2: Lademanagement mit Prioritätsverteilung (Budget-Modi, Wallbox-Sollwerte)."
-            },
-            "0.0.10": {
-                "en": [
-                    "Step 2.2.1: Mixed AC/DC charging management (charger type + control basis) with watt-based budget distribution."
-                ],
-                "de": [
-                    "Schritt 2.2.1: Mischbetrieb AC/DC (Ladegerät-Typ + Regelgröße) mit wattbasierter Budget-Verteilung."
-                ]
-            },
-            "0.0.11": {
-                "en": "Charging: add chargingSince + charging states and arrival-based allocation (charging first). Add AC 3-phase min power and activity threshold config.",
-                "de": "Laden: chargingSince + charging Zustände und ankunftsbasiertes Verteilen (aktive zuerst). Neue Konfig: AC 3‑Phasen Mindestleistung und Aktivitätsschwelle."
-            },
-            "0.0.17": {
-                "en": "Release: consumer abstraction (applySetpoint) for EVCS, budget engine (PV surplus/peak cap/tariff), stickiness + deterministic ordering, and diagnostic states.",
-                "de": "Release: Consumer-Abstraktion (applySetpoint) für EVCS, Budget-Engine (PV-Überschuss/Peak-Cap/Tarif), Stickiness + deterministische Sortierung sowie Diagnose-States."
-            },
-            "0.0.16": {
-                "en": "Charging: consumer abstraction (applySetpoint) for EVCS and actuation refactor.",
-                "de": "Laden: Consumer-Abstraktion (applySetpoint) für EVCS und Refactor der Aktorik."
-            },
-            "0.0.18": {
-                "en": "Added diagnostics logging (tick timings, module status/summary) and optional diagnostics states for troubleshooting.",
-                "de": "Diagnose-Logging ergänzt (Tick-Zeiten, Modul-Status/Summary) sowie optionale Diagnose-States zur Fehlersuche."
-            },
-            "0.0.19": {
-                "en": "Diagnostics: added rate limiting (log/state intervals) and always-on-error behavior to prevent log flooding.",
-                "de": "Diagnose: Rate-Limiting ergänzt (Log/State-Intervalle) sowie Always-on-error, um Log-Spam zu vermeiden."
-            },
-            "0.0.20": {
-                "en": "Fixed Admin UI: added missing jsonConfig.json so instance settings render correctly in Admin 5.",
-                "de": "Admin-UI behoben: fehlende jsonConfig.json ergänzt, damit die Instanzeinstellungen in Admin 5 korrekt angezeigt werden."
-            }
-        },
-        "titleLang": {
-            "en": "NexoWatt Multi-Use",
-            "de": "NexoWatt Multi-Use"
-        },
-        "desc": {
-            "en": "Peak shaving and charging management with modular logic",
-            "de": "Lastspitzenkappung und Lademanagement mit modularer Logik"
-        },
-        "authors": [
-            "NexoWatt <info@nexowatt.example>"
+  "common": {
+    "name": "nexowatt-multiuse",
+    "version": "0.0.21",
+    "news": {
+      "0.0.1": {
+        "en": "Initial architecture skeleton: module manager and schedulers.",
+        "de": "Initiales Architektur-Grundgerüst: Modul-Manager und Scheduler.",
+        "ru": "Начальный каркас архитектуры: менеджер модулей и планировщики.",
+        "pt": "Esqueleto inicial de arquitetura: gerenciador de módulos e agendadores.",
+        "nl": "Initiële architectuurskelet: modulemanager en schedulers.",
+        "fr": "Squelette d'architecture initiale: gestionnaire de modules et planificateurs.",
+        "it": "Scheletro iniziale dell'architettura: gestore moduli e scheduler.",
+        "es": "Esqueleto inicial de arquitectura: gestor de módulos y programadores.",
+        "pl": "Początkowy szkielet architektury: menedżer modułów i harmonogramy.",
+        "uk": "Початковий каркас архітектури: менеджер модулів і планувальники.",
+        "zh-cn": "初始架构骨架：模块管理器与调度器。"
+      },
+      "0.0.7": {
+        "en": "Step 1.5: Actuator table + priority control for Peak Shaving (optional actuation).",
+        "de": "Schritt 1.5: Aktor-Tabelle + Prioritätsregelung für Lastspitzenkappung (optionale Aktorik)."
+      },
+      "0.0.9": {
+        "en": "Step 2.2: Charging Management priority distribution (budget modes, wallbox setpoints).",
+        "de": "Schritt 2.2: Lademanagement mit Prioritätsverteilung (Budget-Modi, Wallbox-Sollwerte)."
+      },
+      "0.0.10": {
+        "en": [
+          "Step 2.2.1: Mixed AC/DC charging management (charger type + control basis) with watt-based budget distribution."
         ],
-        "platform": "Javascript/Node.js",
-        "mode": "daemon",
-        "icon": "nexowatt-multiuse.png",
-        "enabled": true,
-        "extIcon": "https://example.com/nexowatt-multiuse.png",
-        "keywords": [
-            "peak",
-            "shaving",
-            "charging",
-            "energy",
-            "loadmanagement"
-        ],
-        "readme": "README.md",
-        "loglevel": "info",
-        "stopBeforeUpdate": true,
-        "noConfig": false,
-        "compact": true,
-        "connectionType": "local",
-        "dataSource": "push",
-        "adminUI": {
-            "config": "json"
-        }
+        "de": [
+          "Schritt 2.2.1: Mischbetrieb AC/DC (Ladegerät-Typ + Regelgröße) mit wattbasierter Budget-Verteilung."
+        ]
+      },
+      "0.0.11": {
+        "en": "Charging: add chargingSince + charging states and arrival-based allocation (charging first). Add AC 3-phase min power and activity threshold config.",
+        "de": "Laden: chargingSince + charging Zustände und ankunftsbasiertes Verteilen (aktive zuerst). Neue Konfig: AC 3‑Phasen Mindestleistung und Aktivitätsschwelle."
+      },
+      "0.0.17": {
+        "en": "Release: consumer abstraction (applySetpoint) for EVCS, budget engine (PV surplus/peak cap/tariff), stickiness + deterministic ordering, and diagnostic states.",
+        "de": "Release: Consumer-Abstraktion (applySetpoint) für EVCS, Budget-Engine (PV-Überschuss/Peak-Cap/Tarif), Stickiness + deterministische Sortierung sowie Diagnose-States."
+      },
+      "0.0.16": {
+        "en": "Charging: consumer abstraction (applySetpoint) for EVCS and actuation refactor.",
+        "de": "Laden: Consumer-Abstraktion (applySetpoint) für EVCS und Refactor der Aktorik."
+      },
+      "0.0.18": {
+        "en": "Added diagnostics logging (tick timings, module status/summary) and optional diagnostics states for troubleshooting.",
+        "de": "Diagnose-Logging ergänzt (Tick-Zeiten, Modul-Status/Summary) sowie optionale Diagnose-States zur Fehlersuche."
+      },
+      "0.0.19": {
+        "en": "Diagnostics: added rate limiting (log/state intervals) and always-on-error behavior to prevent log flooding.",
+        "de": "Diagnose: Rate-Limiting ergänzt (Log/State-Intervalle) sowie Always-on-error, um Log-Spam zu vermeiden."
+      },
+      "0.0.20": {
+        "en": "Fixed Admin UI: added missing jsonConfig.json so instance settings render correctly in Admin 5.",
+        "de": "Admin-UI behoben: fehlende jsonConfig.json ergänzt, damit die Instanzeinstellungen in Admin 5 korrekt angezeigt werden."
+      }
     },
-    "native": {
-        "enablePeakShaving": true,
-        "enableChargingManagement": false,
-        "enableMultiUse": false,
-        "schedulerIntervalMs": 1000,
-        "peakShaving": {
-            "mode": "static",
-            "gridPointPowerId": "",
-            "gridPointPhaseL1AId": "",
-            "gridPointPhaseL2AId": "",
-            "gridPointPhaseL3AId": "",
-            "maxPowerW": 25000,
-            "maxPhaseA": 32,
-            "smoothingSeconds": 10
-        },
-        "chargingManagement": {
-            "mode": "off",
-            "pvSurplusOnly": false,
-            "boostEnabled": true,
-            "wallboxes": [],
-            "defaultPhases": 3,
-            "voltageV": 230,
-            "minCurrentA": 6,
-            "maxCurrentA": 16,
-            "totalBudgetMode": "unlimited",
-            "staticMaxChargingPowerW": 0,
-            "budgetPowerId": "",
-            "pauseWhenPeakShavingActive": true,
-            "acMinPower3pW": 4200,
-            "activityThresholdW": 200,
-            "stopGraceSec": 30,
-            "sessionKeepSec": 300
-        },
-        "multiUse": {
-            "reserveEnabled": false,
-            "reserveMinW": 0
-        },
-        "devices": {
-            "consumers": [],
-            "wallboxes": []
-        },
-        "globalDatapoints": [],
-        "diagnostics": {
-            "enabled": false,
-            "writeStates": true,
-            "logLevel": "debug",
-            "maxJsonLen": 20000,
-            "logIntervalSec": 10,
-            "stateIntervalSec": 10,
-            "alwaysOnError": true
-        }
+    "titleLang": {
+      "en": "NexoWatt Multi-Use",
+      "de": "NexoWatt Multi-Use"
     },
-    "objects": [],
-    "instanceObjects": []
+    "desc": {
+      "en": "Peak shaving and charging management with modular logic",
+      "de": "Lastspitzenkappung und Lademanagement mit modularer Logik"
+    },
+    "authors": [
+      "NexoWatt <info@nexowatt.example>"
+    ],
+    "platform": "Javascript/Node.js",
+    "mode": "daemon",
+    "icon": "nexowatt-multiuse.png",
+    "enabled": true,
+    "extIcon": "https://example.com/nexowatt-multiuse.png",
+    "keywords": [
+      "peak",
+      "shaving",
+      "charging",
+      "energy",
+      "loadmanagement"
+    ],
+    "readme": "README.md",
+    "loglevel": "info",
+    "stopBeforeUpdate": true,
+    "noConfig": false,
+    "compact": true,
+    "connectionType": "local",
+    "dataSource": "push",
+    "adminUI": {
+      "config": "json"
+    }
+  },
+  "native": {
+    "enablePeakShaving": true,
+    "enableChargingManagement": false,
+    "enableMultiUse": false,
+    "schedulerIntervalMs": 1000,
+    "peakShaving": {
+      "mode": "static",
+      "gridPointPowerId": "",
+      "gridPointPhaseL1AId": "",
+      "gridPointPhaseL2AId": "",
+      "gridPointPhaseL3AId": "",
+      "maxPowerW": 25000,
+      "maxPhaseA": 32,
+      "smoothingSeconds": 10
+    },
+    "chargingManagement": {
+      "mode": "off",
+      "pvSurplusOnly": false,
+      "boostEnabled": true,
+      "wallboxes": [],
+      "defaultPhases": 3,
+      "voltageV": 230,
+      "minCurrentA": 6,
+      "maxCurrentA": 16,
+      "totalBudgetMode": "unlimited",
+      "staticMaxChargingPowerW": 0,
+      "budgetPowerId": "",
+      "pauseWhenPeakShavingActive": true,
+      "acMinPower3pW": 4200,
+      "activityThresholdW": 200,
+      "stopGraceSec": 30,
+      "sessionKeepSec": 300
+    },
+    "multiUse": {
+      "reserveEnabled": false,
+      "reserveMinW": 0
+    },
+    "devices": {
+      "consumers": [],
+      "wallboxes": []
+    },
+    "globalDatapoints": [],
+    "diagnostics": {
+      "enabled": false,
+      "writeStates": true,
+      "logLevel": "debug",
+      "maxJsonLen": 20000,
+      "logIntervalSec": 10,
+      "stateIntervalSec": 10,
+      "alwaysOnError": true
+    }
+  },
+  "objects": [],
+  "instanceObjects": []
 }
