@@ -1,11 +1,19 @@
+## 0.0.12 (2025-12-19)
+- Charging-management: deterministic wallbox ordering (charging → chargingSinceMs → priority/fallback) and correct charging flags in allocation list.
+
+## 0.0.11 (2025-12-19)
+- Charging-management: arrival-based allocation (charging first, then oldest chargingSince).
+- Add runtime states per wallbox: `charging` and `chargingSince`.
+- Add settings: `acMinPower3pW` (default 4200 W) and `activityThresholdW` (default 200 W).
+- AC current-control rounding: avoid rounding-down below min by rounding up one step when needed.
+
 ## 0.0.10 (2025-12-19)
 - Step 2.2.1: Mixed AC/DC operation (chargerType + controlBasis) with watt-based budget distribution and DC fast-chargers support
 - Admin: wallbox table extended with chargerType/controlBasis and min/max power limits (W)
 
 ## 0.0.9 (2025-12-19)
-- Step 2.2: Priority distribution for charging management (wallbox targets by priority, min/max, phases)
-- Charging Management: total budget modes (unlimited/static/from Peak Shaving/from datapoint) and optional pause when Peak Shaving is active
-- Core runtime: repaired and finalized adapter runtime files (main/module manager/datapoint registry/modules) to ensure a runnable baseline
+- Step 2.2: Charging Management priority distribution (budget modes, wallbox setpoints).
+- Charging Management: total budget selection (unlimited/static/fromPeakShaving/fromDatapoint) and optional pause when Peak Shaving is active.
 
 ## 0.0.8 (2025-12-19)
 - Step 2.1: Charging Management wallbox table model (manufacturer-independent mapping)

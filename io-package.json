@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "nexowatt-multiuse",
-    "version": "0.0.10",
+    "version": "0.0.12",
     "news": {
       "0.0.1": {
         "en": "Initial architecture skeleton: module manager and schedulers.",
@@ -31,6 +31,10 @@
         "de": [
           "Schritt 2.2.1: Mischbetrieb AC/DC (Ladeger\u00e4t-Typ + Regelgr\u00f6\u00dfe) mit wattbasierter Budget-Verteilung."
         ]
+      },
+      "0.0.11": {
+        "en": "Charging: add chargingSince + charging states and arrival-based allocation (charging first). Add AC 3-phase min power and activity threshold config.",
+        "de": "Laden: chargingSince + charging Zust\u00e4nde und ankunftsbasiertes Verteilen (aktive zuerst). Neue Konfig: AC 3\u2011Phasen Mindestleistung und Aktivit\u00e4tsschwelle."
       }
     },
     "titleLang": {
@@ -94,7 +98,9 @@
       "totalBudgetMode": "unlimited",
       "staticMaxChargingPowerW": 0,
       "budgetPowerId": "",
-      "pauseWhenPeakShavingActive": true
+      "pauseWhenPeakShavingActive": true,
+      "acMinPower3pW": 4200,
+      "activityThresholdW": 200
     },
     "multiUse": {
       "reserveEnabled": false,

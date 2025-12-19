@@ -36,6 +36,7 @@ class ChargingManagementModule extends BaseModule {
     constructor(adapter, dpRegistry) {
         super(adapter, dpRegistry);
         this._known = new Set(); // wallbox channels created
+        this._chargingSinceMs = new Map(); // safeKey -> ms since epoch
     }
 
     _isEnabled() {
@@ -125,6 +126,8 @@ class ChargingManagementModule extends BaseModule {
         await mk('maxPowerW', 'Max power (W)', 'number', 'value.power');
         await mk('actualPowerW', 'Actual power (W)', 'number', 'value.power');
         await mk('actualCurrentA', 'Actual current (A)', 'number', 'value.current');
+        await mk('charging', 'Charging', 'boolean', 'indicator');
+        await mk('chargingSince', 'Charging since (ms)', 'number', 'value.time');
         await mk('targetCurrentA', 'Target current (A)', 'number', 'value.current');
         await mk('targetPowerW', 'Target power (W)', 'number', 'value.power');
         await mk('applied', 'Applied', 'boolean', 'indicator');
@@ -170,6 +173,8 @@ class ChargingManagementModule extends BaseModule {
         const defaultMinA = clamp(num(cfg.minCurrentA, 6), 0, 2000);
         const defaultMaxA = clamp(num(cfg.maxCurrentA, 16), 0, 2000);
 
+        const acMinPower3pW = clamp(num(cfg.acMinPower3pW, 4200), 0, 1e12);
+        const activityThresholdW = clamp(num(cfg.activityThresholdW, 200), 0, 1e12);
         // Budget selection
         const budgetMode = String(cfg.totalBudgetMode || 'unlimited'); // unlimited | static | fromPeakShaving | fromDatapoint
         const staticBudgetW = clamp(num(cfg.staticMaxChargingPowerW, 0), 0, 1e12);
@@ -188,6 +193,7 @@ class ChargingManagementModule extends BaseModule {
         /** @type {Array<any>} */
         const wbList = [];
 
+        const now = Date.now();
         for (const wb of wallboxes) {
             const key = String(wb.key || '').trim();
             if (!key) continue;
@@ -202,7 +208,7 @@ class ChargingManagementModule extends BaseModule {
 
             // For AC: phases/current bounds apply. For DC: phases are informational; distribution is watt-based.
             const phases = Number(wb.phases || defaultPhases) === 1 ? 1 : 3;
-            const minA = clamp(num(wb.minA, defaultMinA), 0, 2000);
+            let minA = clamp(num(wb.minA, defaultMinA), 0, 2000);
             const maxA = clamp(num(wb.maxA, defaultMaxA), 0, 2000);
 
             const minPowerWCfg = clamp(num(wb.minPowerW, null), 0, 1e12);
@@ -254,6 +260,20 @@ class ChargingManagementModule extends BaseModule {
                 }
             }
 
+            // Charging detection (used for arrival-based stepwise allocation)
+            const pWNum = (typeof pW === 'number' && Number.isFinite(pW)) ? pW : 0;
+            const pWAbs = Math.abs(pWNum);
+            const isCharging = online && enabled && pWAbs >= activityThresholdW;
+
+            let chargingSince = 0;
+            if (isCharging) {
+                const prev = this._chargingSinceMs.get(safe);
+                chargingSince = (typeof prev === 'number' && Number.isFinite(prev) && prev > 0) ? prev : now;
+                this._chargingSinceMs.set(safe, chargingSince);
+            } else {
+                this._chargingSinceMs.delete(safe);
+            }
+
             // Determine effective control basis for this device
             const hasSetA = !!setCurrentAId;
             const hasSetW = !!setPowerWId;
@@ -291,7 +311,7 @@ class ChargingManagementModule extends BaseModule {
                     maxPW = DEFAULT_DC_MAX_W;
                 }
 
-                if (maxPW < minPW) maxPW = minPW;
+                if (maxPW < minPW) minPW = maxPW;
             } else {
                 // AC: if controlling by power, allow explicit min/max power, else derive from min/max current
                 const minFromA = Math.max(0, minA) * vFactor;
@@ -305,7 +325,23 @@ class ChargingManagementModule extends BaseModule {
                     maxPW = maxFromA;
                 }
 
-                if (maxPW < minPW) maxPW = minPW;
+                if (maxPW < minPW) minPW = maxPW;
+
+                if (phases === 3 && acMinPower3pW > 0) {
+                    // Practical AC 3-phase minimum: avoid 3p chargers dropping below ~4.2kW.
+                    minPW = Math.max(minPW, acMinPower3pW);
+                }
+
+                // Quantize min power to 0.1A steps for current-based control (avoid unreachable minPW)
+                if (controlBasis === 'currentA' && vFactor > 0 && minPW > 0) {
+                    const minAFromMinPW = Math.ceil((minPW / vFactor) * 10) / 10;
+                    if (Number.isFinite(minAFromMinPW) && minAFromMinPW > 0) {
+                        minA = Math.max(minA, minAFromMinPW);
+                        minPW = minAFromMinPW * vFactor;
+                    }
+                }
+
+                // Note: if maxPW < minPW after enforcement, this wallbox cannot be started.
             }
 
             if (typeof pW === 'number') totalPowerW += pW;
@@ -324,6 +360,8 @@ class ChargingManagementModule extends BaseModule {
             await this.adapter.setStateAsync(`${ch}.actualPowerW`, typeof pW === 'number' ? pW : 0, true);
             await this.adapter.setStateAsync(`${ch}.actualCurrentA`, typeof iA === 'number' ? iA : 0, true);
 
+            await this.adapter.setStateAsync(`${ch}.charging`, isCharging, true);
+            await this.adapter.setStateAsync(`${ch}.chargingSince`, chargingSince, true);
             wbList.push({
                 key,
                 safe,
@@ -331,6 +369,9 @@ class ChargingManagementModule extends BaseModule {
                 name: String(wb.name || key),
                 enabled,
                 online,
+                charging: isCharging,
+                chargingSinceMs: isCharging ? chargingSince : 0,
+                actualPowerW: pWNum,
                 priority,
                 chargerType,
                 controlBasis,
@@ -400,7 +441,24 @@ class ChargingManagementModule extends BaseModule {
         // Priority distribution in W across mixed AC/DC chargers
         const sorted = wbList
             .filter(w => w.enabled && w.online)
-            .sort((a, b) => (a.priority - b.priority) || a.safe.localeCompare(b.safe));
+            .sort((a, b) => {
+                const ac = a.charging ? 1 : 0;
+                const bc = b.charging ? 1 : 0;
+                if (ac !== bc) return bc - ac; // charging first
+
+                // Earlier charging sessions first (arrival order). Non-charging get Infinity and fall back to priority.
+                const as = (Number.isFinite(a.chargingSinceMs) && a.chargingSinceMs > 0) ? a.chargingSinceMs : Infinity;
+                const bs = (Number.isFinite(b.chargingSinceMs) && b.chargingSinceMs > 0) ? b.chargingSinceMs : Infinity;
+                if (as !== bs) return as - bs;
+
+                const ap = Number.isFinite(a.priority) ? a.priority : 9999;
+                const bp = Number.isFinite(b.priority) ? b.priority : 9999;
+                if (ap !== bp) return ap - bp;
+
+                const ask = String(a.safe || '');
+                const bsk = String(b.safe || '');
+                return ask.localeCompare(bsk);
+            });
 
         let remainingW = budgetW;
         let usedW = 0;
@@ -427,6 +485,10 @@ class ChargingManagementModule extends BaseModule {
             } else if (remainingW >= w.minPW || w.minPW === 0) {
                 targetW = Math.min(remainingW, w.maxPW);
                 reason = 'allocated';
+                if (targetW > 0 && w.minPW > 0 && targetW < w.minPW) {
+                    targetW = 0;
+                    reason = 'below_min';
+                }
             } else {
                 targetW = 0;
                 reason = 'below_min';
@@ -443,10 +505,27 @@ class ChargingManagementModule extends BaseModule {
 
                 // round DOWN to 0.1A to avoid budget overshoot
                 let aRounded = Math.floor(aRaw * 10) / 10;
-                if (aRounded < minA) aRounded = 0;
 
+                // Apply minA (avoid rounding-down dropping below min)
+                if (aRounded > 0 && aRounded < minA) {
+                    // try rounding up to the next 0.1A step if that would satisfy minA
+                    const aUp = Math.ceil(aRaw * 10) / 10;
+                    if (aUp >= minA && aUp <= maxA) {
+                        aRounded = aUp;
+                    } else {
+                        aRounded = 0;
+                    }
+                }
+                if (aRounded < minA) aRounded = 0;
                 targetA = aRounded;
                 targetW = targetA * vFactor;
+
+                // Safety: enforce min power after quantization
+                if (targetW > 0 && w.minPW > 0 && targetW < w.minPW) {
+                    targetA = 0;
+                    targetW = 0;
+                    reason = 'below_min';
+                }
             } else if (w.chargerType === 'AC') {
                 // purely informational for power-based AC
                 const vFactor = w.vFactor;
