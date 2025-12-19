@@ -1,6 +1,6 @@
 {
     "name": "iobroker.nexowatt-multiuse",
-    "version": "0.0.18",
+    "version": "0.0.20",
     "description": "NexoWatt Multi-Use: Peak shaving and charging management (ioBroker adapter)",
     "author": "NexoWatt",
     "license": "SEE LICENSE IN LICENSE",

@@ -526,4 +526,29 @@ systemDictionary = {
         'en': 'info',
         'de': 'info'
     },
+
+    'Diagnostics log interval (sec)': {
+        'en': 'Diagnostics log interval (sec)',
+        'de': 'Diagnose-Log-Intervall (Sek.)'
+    },
+    'Diagnostics state interval (sec)': {
+        'en': 'Diagnostics state interval (sec)',
+        'de': 'Diagnose-State-Intervall (Sek.)'
+    },
+    'Always log/write on error': {
+        'en': 'Always log/write on error',
+        'de': 'Bei Fehler immer loggen/schreiben'
+    },
+    'Minimum seconds between diagnostics log lines (0 = every tick).': {
+        'en': 'Minimum seconds between diagnostics log lines (0 = every tick).',
+        'de': 'Mindestsekunden zwischen Diagnose-Logzeilen (0 = jeder Tick).'
+    },
+    'Minimum seconds between writing diagnostics states (0 = every tick).': {
+        'en': 'Minimum seconds between writing diagnostics states (0 = every tick).',
+        'de': 'Mindestsekunden zwischen Schreiben der Diagnose-States (0 = jeder Tick).'
+    },
+    'If a module error occurs, diagnostics are logged/written immediately (ignores intervals).': {
+        'en': 'If a module error occurs, diagnostics are logged/written immediately (ignores intervals).',
+        'de': 'Bei Modul-Fehler werden Diagnose-Daten sofort geloggt/geschrieben (ignoriert Intervalle).'
+    },
 };

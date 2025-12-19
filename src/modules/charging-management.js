@@ -40,6 +40,7 @@ class ChargingManagementModule extends BaseModule {
         this._chargingSinceMs = new Map(); // safeKey -> ms since epoch
         this._chargingLastActiveMs = new Map(); // safeKey -> ms of last detected activity
         this._chargingLastSeenMs = new Map(); // safeKey -> ms of last processing (cleanup)
+        this._lastDiagLogMs = 0; // MU6.2: rate limit diagnostics log
     }
 
     _isEnabled() {
@@ -798,7 +799,16 @@ debugAlloc.push({
         const diagMaxJsonLen = (Number.isFinite(diagMaxJsonLenNum) && diagMaxJsonLenNum >= 1000) ? diagMaxJsonLenNum : 20000;
 
         if (diagEnabled) {
-            try {
+            const nowDiag = Date.now();
+            const logIntSecNum = diagCfg ? Number(diagCfg.logIntervalSec) : NaN;
+            const logIntSec = (Number.isFinite(logIntSecNum) && logIntSecNum >= 0) ? logIntSecNum : 10;
+            const logIntMs = Math.round(logIntSec * 1000);
+            const shouldLog = (logIntMs <= 0) || ((nowDiag - (this._lastDiagLogMs || 0)) >= logIntMs);
+            if (!shouldLog) {
+                // skip logging this tick
+            } else {
+                this._lastDiagLogMs = nowDiag;
+                try {
                 const order = sorted.map(w => w.safe).join('>');
                 const top = debugAlloc
                     .filter(a => a && typeof a.safe === 'string')
@@ -810,6 +820,7 @@ debugAlloc.push({
                 fn.call(this.adapter.log, msg);
             } catch {
                 // ignore
+            }
             }
         }
 

@@ -72,6 +72,22 @@ class NexoWattMultiUse extends utils.Adapter {
                 common: { name: 'Diagnostics tick duration (ms)', type: 'number', role: 'value', unit: 'ms', read: true, write: false },
                 native: {},
             });
+
+            await this.setObjectNotExistsAsync('diagnostics.tickCount', {
+                type: 'state',
+                common: { name: 'Diagnostics tick counter', type: 'number', role: 'value', read: true, write: false },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync('diagnostics.lastLog', {
+                type: 'state',
+                common: { name: 'Diagnostics last log', type: 'number', role: 'value.time', read: true, write: false },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync('diagnostics.lastWrite', {
+                type: 'state',
+                common: { name: 'Diagnostics last state write', type: 'number', role: 'value.time', read: true, write: false },
+                native: {},
+            });
             await this.setObjectNotExistsAsync('diagnostics.modules', {
                 type: 'state',
                 common: { name: 'Diagnostics modules (JSON)', type: 'string', role: 'text', read: true, write: false },

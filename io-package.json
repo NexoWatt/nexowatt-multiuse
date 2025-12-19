@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "nexowatt-multiuse",
-        "version": "0.0.18",
+        "version": "0.0.20",
         "news": {
             "0.0.1": {
                 "en": "Initial architecture skeleton: module manager and schedulers.",
@@ -47,6 +47,14 @@
             "0.0.18": {
                 "en": "Added diagnostics logging (tick timings, module status/summary) and optional diagnostics states for troubleshooting.",
                 "de": "Diagnose-Logging ergänzt (Tick-Zeiten, Modul-Status/Summary) sowie optionale Diagnose-States zur Fehlersuche."
+            },
+            "0.0.19": {
+                "en": "Diagnostics: added rate limiting (log/state intervals) and always-on-error behavior to prevent log flooding.",
+                "de": "Diagnose: Rate-Limiting ergänzt (Log/State-Intervalle) sowie Always-on-error, um Log-Spam zu vermeiden."
+            },
+            "0.0.20": {
+                "en": "Fixed Admin UI: added missing jsonConfig.json so instance settings render correctly in Admin 5.",
+                "de": "Admin-UI behoben: fehlende jsonConfig.json ergänzt, damit die Instanzeinstellungen in Admin 5 korrekt angezeigt werden."
             }
         },
         "titleLang": {
@@ -129,7 +137,10 @@
             "enabled": false,
             "writeStates": true,
             "logLevel": "debug",
-            "maxJsonLen": 20000
+            "maxJsonLen": 20000,
+            "logIntervalSec": 10,
+            "stateIntervalSec": 10,
+            "alwaysOnError": true
         }
     },
     "objects": [],

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.20 (2025-12-19)
+- MU6.3: Fixed Admin JSON config filename (added admin/jsonConfig.json) so instance settings are visible.
+
+## 0.0.19 (2025-12-19)
+- MU6.2: Diagnostics rate limiting (log/state intervals), always-on-error behavior and reduced log flooding.
+
 ## 0.0.18 (2025-12-19)
 - MU6.1: Added diagnostics logging (per-module tick timings, summary, and optional diagnostics states).
 - Added diagnostics settings in Admin (enable, write states, log level).
