@@ -1,6 +1,7 @@
 'use strict';
 
 const { BaseModule } = require('./base');
+const { applySetpoint } = require('../consumers');
 
 function toSafeIdPart(input) {
     const s = String(input || '').trim();
@@ -146,6 +147,7 @@ class ChargingManagementModule extends BaseModule {
         await mk('targetCurrentA', 'Target current (A)', 'number', 'value.current');
         await mk('targetPowerW', 'Target power (W)', 'number', 'value.power');
         await mk('applied', 'Applied', 'boolean', 'indicator');
+        await mk('applyStatus', 'Apply status', 'string', 'text');
         await mk('reason', 'Reason', 'string', 'text');
 
         this._known.add(ch);
@@ -445,7 +447,16 @@ class ChargingManagementModule extends BaseModule {
                 setAKey: hasSetA ? `cm.wb.${safe}.setA` : null,
                 setWKey: hasSetW ? `cm.wb.${safe}.setW` : null,
                 enableKey: enableId ? `cm.wb.${safe}.en` : null,
-            });
+                consumer: {
+                    type: 'evcs',
+                    key: safe,
+                    name: String(wb.name || key),
+                    controlBasis,
+                    setAKey: hasSetA ? `cm.wb.${safe}.setA` : '',
+                    setWKey: hasSetW ? `cm.wb.${safe}.setW` : '',
+                    enableKey: enableId ? `cm.wb.${safe}.en` : '',
+                },
+});
         }
 
         await this.adapter.setStateAsync('chargingManagement.wallboxCount', wbList.length, true);
@@ -721,31 +732,54 @@ class ChargingManagementModule extends BaseModule {
             totalTargetPowerW += targetW;
             if (Number.isFinite(targetA) && targetA > 0) totalTargetCurrentA += targetA;
 
-            // Writes
+            // Writes (consumer abstraction)
             let applied = false;
+            let applyStatus = 'skipped';
+            /** @type {any|null} */
+            let applyWrites = null;
 
             if (this.dp) {
-                if (w.controlBasis === 'currentA' && w.setAKey) {
-                    applied = await this.dp.writeNumber(w.setAKey, targetA, false);
-                } else if (w.controlBasis === 'powerW' && w.setWKey) {
-                    applied = await this.dp.writeNumber(w.setWKey, Math.round(targetW), false);
-                } else if (w.controlBasis !== 'none') {
-                    // Fallback: if basis says current but we only have W, or vice versa
-                    if (w.setWKey) applied = await this.dp.writeNumber(w.setWKey, Math.round(targetW), false);
-                    else if (w.setAKey) applied = await this.dp.writeNumber(w.setAKey, targetA, false);
-                }
+                const consumer = w.consumer || {
+                    type: 'evcs',
+                    key: w.safe,
+                    name: w.name,
+                    controlBasis: w.controlBasis,
+                    setAKey: w.setAKey || '',
+                    setWKey: w.setWKey || '',
+                    enableKey: w.enableKey || '',
+                };
 
-                if (w.enableKey) {
-                    await this.dp.writeBoolean(w.enableKey, targetW > 0, false);
-                }
+                const res = await applySetpoint({ adapter: this.adapter, dp: this.dp }, consumer, { targetW, targetA, basis: w.controlBasis });
+                applied = !!res?.applied;
+                applyStatus = String(res?.status || (applied ? 'applied' : 'write_failed'));
+                applyWrites = res?.writes || null;
+            } else {
+                applyStatus = 'no_dp_registry';
             }
 
             await this.adapter.setStateAsync(`${w.ch}.targetCurrentA`, targetA, true);
             await this.adapter.setStateAsync(`${w.ch}.targetPowerW`, targetW, true);
             await this.adapter.setStateAsync(`${w.ch}.applied`, applied, true);
-            await this.adapter.setStateAsync(`${w.ch}.reason`, reason, true);
-            debugAlloc.push({ safe: w.safe, name: w.name, charging: !!w.charging, chargingSinceMs: w.chargingSinceMs || 0, priority: w.priority, controlBasis: w.controlBasis, chargerType: w.chargerType, targetW, targetA, applied, reason });
-        }
+            await this.adapter.setStateAsync(`${w.ch}.applyStatus`, applyStatus, true);
+                        await this.adapter.setStateAsync(`${w.ch}.reason`, w.enabled ? (w.online ? 'skipped' : 'offline') : 'disabled', true);
+debugAlloc.push({
+                safe: w.safe,
+                name: w.name,
+                charging: !!w.charging,
+                chargingSinceMs: w.chargingSinceMs || 0,
+                online: !!w.online,
+                enabled: !!w.enabled,
+                priority: w.priority,
+                controlBasis: w.controlBasis,
+                chargerType: w.chargerType,
+                targetW,
+                targetA,
+                applied,
+                applyStatus,
+                applyWrites,
+                reason,
+            });
+}
 
         // wallboxes that are disabled/offline: expose targets as 0 (no writes)
         for (const w of wbList) {
@@ -753,12 +787,35 @@ class ChargingManagementModule extends BaseModule {
             await this.adapter.setStateAsync(`${w.ch}.targetCurrentA`, 0, true);
             await this.adapter.setStateAsync(`${w.ch}.targetPowerW`, 0, true);
             await this.adapter.setStateAsync(`${w.ch}.applied`, false, true);
-            await this.adapter.setStateAsync(`${w.ch}.reason`, w.enabled ? (w.online ? 'skipped' : 'offline') : 'disabled', true);
+                        await this.adapter.setStateAsync(`${w.ch}.reason`, w.enabled ? (w.online ? 'skipped' : 'offline') : 'disabled', true);
+}
+
+        // MU6.1: diagnostics logging (compact, decision-leading)
+        const diagCfg = (this.adapter && this.adapter.config && this.adapter.config.diagnostics) ? this.adapter.config.diagnostics : null;
+        const diagEnabled = !!(diagCfg && diagCfg.enabled);
+        const diagLevel = (diagCfg && (diagCfg.logLevel === 'info' || diagCfg.logLevel === 'debug')) ? diagCfg.logLevel : 'debug';
+        const diagMaxJsonLenNum = diagCfg ? Number(diagCfg.maxJsonLen) : NaN;
+        const diagMaxJsonLen = (Number.isFinite(diagMaxJsonLenNum) && diagMaxJsonLenNum >= 1000) ? diagMaxJsonLenNum : 20000;
+
+        if (diagEnabled) {
+            try {
+                const order = sorted.map(w => w.safe).join('>');
+                const top = debugAlloc
+                    .filter(a => a && typeof a.safe === 'string')
+                    .slice(0, 10)
+                    .map(a => `${a.safe}:${Math.round(Number(a.targetW || 0))}W/${(Number.isFinite(Number(a.targetA)) ? Number(a.targetA).toFixed(1) : '0.0')}A(${a.reason || ''})`)
+                    .join(' ');
+                const msg = `[CM] mode=${mode} budgetMode=${effectiveBudgetMode} budget=${Math.round(Number(budgetW || 0))}W used=${Math.round(Number(usedW || 0))}W rem=${Math.round(Number(remainingW || 0))}W online=${onlineCount}/${wbList.length} order=${order}` + (top ? (` targets=${top}`) : '');
+                const fn = (this.adapter && this.adapter.log && typeof this.adapter.log[diagLevel] === 'function') ? this.adapter.log[diagLevel] : this.adapter.log.debug;
+                fn.call(this.adapter.log, msg);
+            } catch {
+                // ignore
+            }
         }
 
         try {
             const s = JSON.stringify(debugAlloc);
-            await this.adapter.setStateAsync('chargingManagement.debug.allocations', s.length > 20000 ? (s.slice(0, 20000) + '...') : s, true);
+            await this.adapter.setStateAsync('chargingManagement.debug.allocations', s.length > diagMaxJsonLen ? (s.slice(0, diagMaxJsonLen) + '...') : s, true);
         } catch {
             await this.adapter.setStateAsync('chargingManagement.debug.allocations', '[]', true);
         }

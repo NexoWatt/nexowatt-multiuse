@@ -1,44 +1,47 @@
 # NexoWatt Multi-Use (ioBroker Adapter)
 
-This repository contains the **architecture skeleton** for a modular ioBroker adapter that will provide:
-
-- Peak shaving (static & dynamic, per-phase capable)
-- Charging management for EVSE / Wallboxes (priorities, PV surplus, boost)
-- Multi-use logic extensions (e.g., reserve / backup hooks)
+NexoWatt Multi-Use is a modular adapter foundation for:
+- Peak shaving (static/dynamic, per-phase capable)
+- EVCS / wallbox charging management (priorities, PV surplus, caps)
+- Extension hooks for additional controllable loads (multi-use)
 
 ## Status
-- Version: **0.0.9**
-- Roadmap step: **2.2 – Charging Management priority logic**
+- Version: **0.0.17**
+- Implemented: charging management ordering + stickiness, budget engine (PV surplus/peak cap/tariff), and EVCS actuation via consumer abstraction (`applySetpoint`).
 
-## Notes
-- The concrete control logic will be implemented step-by-step.
-- All device/state bindings are intended to be configured via Admin UI (tables) to stay manufacturer-independent.
+## Configuration overview
+### Global datapoints (optional, recommended)
+Depending on your setup you can provide these global datapoints:
+- `cm.pvSurplusW` (W): PV surplus budget (preferred if available)
+- `cm.gridPowerW` or `ps.gridPowerW` (W): grid import/export for deriving PV surplus (negative = export)
+- `cm.tariffBudgetW` (W): optional tariff-based budget cap
+
+### Charging management (wallbox table)
+Configure wallboxes in the Charging Management tab:
+- Actual power/current (read)
+- Optional per-phase currents (read)
+- Setpoint datapoints for current/power limits (write)
+- Optional enable datapoints
+
+The adapter exposes diagnostic states under:
+- `chargingManagement.wallboxes.<key>.*`
+- `chargingManagement.debug.*`
+
+## Safety note
+Actuation must be enabled explicitly. Verify your setpoint datapoints and limits before using the adapter in production.
 
 ## License
 See `LICENSE`.
 
+## Diagnostics
 
-## Universal datapoint model (Step 0.2)
+For troubleshooting, you can enable diagnostics logging in the Admin UI (General → Diagnostics).
 
-This adapter is designed to be manufacturer-independent. Object IDs are mapped in the admin UI via a global datapoint table.
+- When enabled, the adapter writes `diagnostics.*` states (if "Write diagnostics states" is enabled) and emits compact decision-leading logs.
+- Charging Management also exposes `chargingManagement.debug.*` (sorted order and allocation JSON).
 
-Each datapoint supports optional transform settings (scale/offset/invert) to normalize values.
+Recommended workflow:
+1. Enable diagnostics.
+2. Reproduce the issue.
+3. Inspect `diagnostics.summary`, `diagnostics.modules`, and `chargingManagement.debug.allocations`.
 
-
-## Peak Shaving – Actuation (Step 1.5)
-
-You can optionally configure a list of actuators (controlled loads / wallboxes) in the Peak Shaving tab.
-The adapter can then apply the computed reduction (W) to these actuators by priority (greedy strategy).
-
-Important: actuation is disabled by default. Enable it explicitly and verify your setpoint datapoints.
-
-
-## Charging Management – Wallbox table (Step 2.1)
-
-Configure your wallboxes in the Charging Management tab using the wallbox table. Each wallbox can map:
-- Actual power/current (read)
-- Optional per-phase currents (read)
-- Setpoint datapoints for current/power limits (write, used in later steps)
-- Optional enable/status datapoints
-
-The adapter creates diagnostic states under `chargingManagement.wallboxes.<key>.*` and a summary under `chargingManagement.summary.*`.

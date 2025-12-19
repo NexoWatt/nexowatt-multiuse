@@ -363,6 +363,19 @@ class PeakShavingModule extends BaseModule {
             await this._restoreActuators(actuators);
         }
 
+
+        // MU6.1: diagnostics logging (compact)
+        const diagCfg = (this.adapter && this.adapter.config && this.adapter.config.diagnostics) ? this.adapter.config.diagnostics : null;
+        if (diagCfg && diagCfg.enabled) {
+            const lvl = (diagCfg.logLevel === 'info' || diagCfg.logLevel === 'debug') ? diagCfg.logLevel : 'debug';
+            const fn = (this.adapter && this.adapter.log && typeof this.adapter.log[lvl] === 'function') ? this.adapter.log[lvl] : this.adapter.log.debug;
+            try {
+                fn.call(this.adapter.log, `[PS] mode=${mode} active=${active} limit=${Math.round(Number(limitW || 0))}W eff=${Math.round(Number(effPower || 0))}W over=${Math.round(Number(overW || 0))}W availCtl=${Math.round(Number(availableForControlledW || 0))}W reqRed=${Math.round(Number(requiredReductionW || 0))}W`);
+            } catch {
+                // ignore
+            }
+        }
+
         this._wasActive = active;
     }
 

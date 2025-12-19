@@ -480,5 +480,50 @@ systemDictionary = {
     'write': {
         'en': 'write',
         'de': 'write'
-    }
+    },
+
+    'Diagnostics': {
+        'en': 'Diagnostics',
+        'de': 'Diagnose'
+    },
+    'Enable diagnostics logging': {
+        'en': 'Enable diagnostics logging',
+        'de': 'Diagnose-Logging aktivieren'
+    },
+    'Write diagnostics states': {
+        'en': 'Write diagnostics states',
+        'de': 'Diagnose-States schreiben'
+    },
+    'Diagnostics log level': {
+        'en': 'Diagnostics log level',
+        'de': 'Diagnose-Loglevel'
+    },
+    'Diagnostics max JSON length': {
+        'en': 'Diagnostics max JSON length',
+        'de': 'Max. JSON-Länge Diagnose'
+    },
+    'Enables additional debug/info logs and optional diagnostics states.': {
+        'en': 'Enables additional debug/info logs and optional diagnostics states.',
+        'de': 'Aktiviert zusätzliche Debug/Info-Logs sowie optionale Diagnose-States.'
+    },
+    'If enabled, diagnostics data is written to adapter states (diagnostics.*).': {
+        'en': 'If enabled, diagnostics data is written to adapter states (diagnostics.*).',
+        'de': 'Wenn aktiv, werden Diagnose-Daten in Adapter-States (diagnostics.*) geschrieben.'
+    },
+    'Log level used for diagnostics output (adapter log).': {
+        'en': 'Log level used for diagnostics output (adapter log).',
+        'de': 'Loglevel für Diagnose-Ausgaben (Adapter-Log).'
+    },
+    'Maximum length for JSON written to diagnostics states (prevents oversized states).': {
+        'en': 'Maximum length for JSON written to diagnostics states (prevents oversized states).',
+        'de': 'Maximale Länge für JSON in Diagnose-States (verhindert zu große States).'
+    },
+    'debug': {
+        'en': 'debug',
+        'de': 'debug'
+    },
+    'info': {
+        'en': 'info',
+        'de': 'info'
+    },
 };

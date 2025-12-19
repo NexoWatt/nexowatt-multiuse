@@ -50,6 +50,48 @@ class NexoWattMultiUse extends utils.Adapter {
                 native: {},
             });
 
+
+            // Diagnostics (optional)
+            await this.setObjectNotExistsAsync('diagnostics', {
+                type: 'channel',
+                common: { name: 'Diagnostics' },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync('diagnostics.enabled', {
+                type: 'state',
+                common: { name: 'Diagnostics enabled', type: 'boolean', role: 'indicator', read: true, write: false },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync('diagnostics.lastTick', {
+                type: 'state',
+                common: { name: 'Diagnostics last tick', type: 'number', role: 'value.time', read: true, write: false },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync('diagnostics.lastTickMs', {
+                type: 'state',
+                common: { name: 'Diagnostics tick duration (ms)', type: 'number', role: 'value', unit: 'ms', read: true, write: false },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync('diagnostics.modules', {
+                type: 'state',
+                common: { name: 'Diagnostics modules (JSON)', type: 'string', role: 'text', read: true, write: false },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync('diagnostics.errors', {
+                type: 'state',
+                common: { name: 'Diagnostics errors', type: 'string', role: 'text', read: true, write: false },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync('diagnostics.summary', {
+                type: 'state',
+                common: { name: 'Diagnostics summary', type: 'string', role: 'text', read: true, write: false },
+                native: {},
+            });
+
+            // reflect config
+            const diagEnabled = !!(this.config && this.config.diagnostics && this.config.diagnostics.enabled);
+            await this.setStateAsync('diagnostics.enabled', diagEnabled, true);
+
             const intervalMs = Number(this.config.schedulerIntervalMs || 1000);
             const safeIntervalMs = Number.isFinite(intervalMs) && intervalMs >= 250 ? intervalMs : 1000;
 

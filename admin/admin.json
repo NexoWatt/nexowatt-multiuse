@@ -24,6 +24,43 @@
                     "min": 250,
                     "max": 60000
                 },
+                "divider_diag": {
+                    "type": "divider",
+                    "label": "Diagnostics"
+                },
+                "diagnostics.enabled": {
+                    "type": "checkbox",
+                    "label": "Enable diagnostics logging",
+                    "help": "Enables additional debug/info logs and optional diagnostics states."
+                },
+                "diagnostics.writeStates": {
+                    "type": "checkbox",
+                    "label": "Write diagnostics states",
+                    "help": "If enabled, diagnostics data is written to adapter states (diagnostics.*)."
+                },
+                "diagnostics.logLevel": {
+                    "type": "select",
+                    "label": "Diagnostics log level",
+                    "options": [
+                        {
+                            "label": "debug",
+                            "value": "debug"
+                        },
+                        {
+                            "label": "info",
+                            "value": "info"
+                        }
+                    ],
+                    "help": "Log level used for diagnostics output (adapter log)."
+                },
+                "diagnostics.maxJsonLen": {
+                    "type": "number",
+                    "label": "Diagnostics max JSON length",
+                    "min": 1000,
+                    "max": 200000,
+                    "step": 1000,
+                    "help": "Maximum length for JSON written to diagnostics states (prevents oversized states)."
+                },
                 "divider_dps": {
                     "type": "divider",
                     "label": "Universal Datapoints"
@@ -509,7 +546,7 @@
                     "max": 1000000,
                     "help": "A wallbox is considered 'charging' if its measured power is >= this threshold."
                 },
-                                "chargingManagement.stopGraceSec": {
+                "chargingManagement.stopGraceSec": {
                     "type": "number",
                     "label": "Stop grace (s)",
                     "min": 0,
@@ -523,8 +560,7 @@
                     "max": 86400,
                     "help": "Keep the charging session timestamp for this duration after activity stops. If charging resumes within this window, it keeps its original arrival order."
                 },
-
-"chargingManagement.minCurrentA": {
+                "chargingManagement.minCurrentA": {
                     "type": "number",
                     "label": "Default min current (A)"
                 },
