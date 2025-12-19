@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "nexowatt-multiuse",
-    "version": "0.0.21",
+    "version": "0.0.22",
     "news": {
       "0.0.1": {
         "en": "Initial architecture skeleton: module manager and schedulers.",
@@ -55,6 +55,14 @@
       "0.0.20": {
         "en": "Fixed Admin UI: added missing jsonConfig.json so instance settings render correctly in Admin 5.",
         "de": "Admin-UI behoben: fehlende jsonConfig.json ergänzt, damit die Instanzeinstellungen in Admin 5 korrekt angezeigt werden."
+      },
+      "0.0.22": {
+        "en": "Admin UI: added i18n translation files (German + English) for jsonConfig labels.",
+        "de": "Admin-UI: i18n-Übersetzungsdateien (Deutsch + Englisch) für jsonConfig-Labels ergänzt."
+      },
+      "0.0.21": {
+        "en": "Admin UI: fixed jsonConfig table rendering / schema issues.",
+        "de": "Admin-UI: jsonConfig-Tabellenrendering / Schema-Probleme behoben."
       }
     },
     "titleLang": {

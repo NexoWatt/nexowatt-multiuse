@@ -589,7 +589,7 @@
           "label": "Session keep time (s)",
           "min": 0,
           "max": 86400,
-          "help": "Keep the charging session timestamp for this duration after activity stops. If charging resumes within this window, it keeps its original arrival order."
+          "help": "Keep the charging session timestamp for this duration after a charging session stops. If it resumes within this window, it keeps its original arrival order."
         },
         "chargingManagement.minCurrentA": {
           "type": "number",

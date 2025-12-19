@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.22 (2025-12-19)
+
+* (MU6.5) Admin UI: add i18n translation files (de/en) so JSONConfig labels are translated (German instance settings).
+
 ## 0.0.21 (2025-12-19)
 
 * (MU6.4) Fix admin JSONConfig tables: convert table column definitions to array format expected by ioBroker Admin.
