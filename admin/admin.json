@@ -454,6 +454,10 @@
                         {
                             "label": "fromDatapoint",
                             "value": "fromDatapoint"
+                        },
+                        {
+                            "label": "engine",
+                            "value": "engine"
                         }
                     ],
                     "help": "Defines the total charging budget used for priority distribution."
@@ -505,7 +509,22 @@
                     "max": 1000000,
                     "help": "A wallbox is considered 'charging' if its measured power is >= this threshold."
                 },
-                "chargingManagement.minCurrentA": {
+                                "chargingManagement.stopGraceSec": {
+                    "type": "number",
+                    "label": "Stop grace (s)",
+                    "min": 0,
+                    "max": 3600,
+                    "help": "Keep a wallbox in 'charging' state for this duration after power drops below threshold (prevents flapping)."
+                },
+                "chargingManagement.sessionKeepSec": {
+                    "type": "number",
+                    "label": "Session keep time (s)",
+                    "min": 0,
+                    "max": 86400,
+                    "help": "Keep the charging session timestamp for this duration after activity stops. If charging resumes within this window, it keeps its original arrival order."
+                },
+
+"chargingManagement.minCurrentA": {
                     "type": "number",
                     "label": "Default min current (A)"
                 },

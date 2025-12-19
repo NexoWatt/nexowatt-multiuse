@@ -1,40 +1,40 @@
 {
   "common": {
     "name": "nexowatt-multiuse",
-    "version": "0.0.12",
+    "version": "0.0.15",
     "news": {
       "0.0.1": {
         "en": "Initial architecture skeleton: module manager and schedulers.",
-        "de": "Initiales Architektur-Grundger\u00fcst: Modul-Manager und Scheduler.",
-        "ru": "\u041d\u0430\u0447\u0430\u043b\u044c\u043d\u044b\u0439 \u043a\u0430\u0440\u043a\u0430\u0441 \u0430\u0440\u0445\u0438\u0442\u0435\u043a\u0442\u0443\u0440\u044b: \u043c\u0435\u043d\u0435\u0434\u0436\u0435\u0440 \u043c\u043e\u0434\u0443\u043b\u0435\u0439 \u0438 \u043f\u043b\u0430\u043d\u0438\u0440\u043e\u0432\u0449\u0438\u043a\u0438.",
-        "pt": "Esqueleto inicial de arquitetura: gerenciador de m\u00f3dulos e agendadores.",
-        "nl": "Initi\u00eble architectuurskelet: modulemanager en schedulers.",
+        "de": "Initiales Architektur-Grundgerüst: Modul-Manager und Scheduler.",
+        "ru": "Начальный каркас архитектуры: менеджер модулей и планировщики.",
+        "pt": "Esqueleto inicial de arquitetura: gerenciador de módulos e agendadores.",
+        "nl": "Initiële architectuurskelet: modulemanager en schedulers.",
         "fr": "Squelette d'architecture initiale: gestionnaire de modules et planificateurs.",
         "it": "Scheletro iniziale dell'architettura: gestore moduli e scheduler.",
-        "es": "Esqueleto inicial de arquitectura: gestor de m\u00f3dulos y programadores.",
-        "pl": "Pocz\u0105tkowy szkielet architektury: mened\u017cer modu\u0142\u00f3w i harmonogramy.",
-        "uk": "\u041f\u043e\u0447\u0430\u0442\u043a\u043e\u0432\u0438\u0439 \u043a\u0430\u0440\u043a\u0430\u0441 \u0430\u0440\u0445\u0456\u0442\u0435\u043a\u0442\u0443\u0440\u0438: \u043c\u0435\u043d\u0435\u0434\u0436\u0435\u0440 \u043c\u043e\u0434\u0443\u043b\u0456\u0432 \u0456 \u043f\u043b\u0430\u043d\u0443\u0432\u0430\u043b\u044c\u043d\u0438\u043a\u0438.",
-        "zh-cn": "\u521d\u59cb\u67b6\u6784\u9aa8\u67b6\uff1a\u6a21\u5757\u7ba1\u7406\u5668\u4e0e\u8c03\u5ea6\u5668\u3002"
+        "es": "Esqueleto inicial de arquitectura: gestor de módulos y programadores.",
+        "pl": "Początkowy szkielet architektury: menedżer modułów i harmonogramy.",
+        "uk": "Початковий каркас архітектури: менеджер модулів і планувальники.",
+        "zh-cn": "初始架构骨架：模块管理器与调度器。"
       },
       "0.0.7": {
         "en": "Step 1.5: Actuator table + priority control for Peak Shaving (optional actuation).",
-        "de": "Schritt 1.5: Aktor-Tabelle + Priorit\u00e4tsregelung f\u00fcr Lastspitzenkappung (optionale Aktorik)."
+        "de": "Schritt 1.5: Aktor-Tabelle + Prioritätsregelung für Lastspitzenkappung (optionale Aktorik)."
       },
       "0.0.9": {
         "en": "Step 2.2: Charging Management priority distribution (budget modes, wallbox setpoints).",
-        "de": "Schritt 2.2: Lademanagement mit Priorit\u00e4tsverteilung (Budget-Modi, Wallbox-Sollwerte)."
+        "de": "Schritt 2.2: Lademanagement mit Prioritätsverteilung (Budget-Modi, Wallbox-Sollwerte)."
       },
       "0.0.10": {
         "en": [
           "Step 2.2.1: Mixed AC/DC charging management (charger type + control basis) with watt-based budget distribution."
         ],
         "de": [
-          "Schritt 2.2.1: Mischbetrieb AC/DC (Ladeger\u00e4t-Typ + Regelgr\u00f6\u00dfe) mit wattbasierter Budget-Verteilung."
+          "Schritt 2.2.1: Mischbetrieb AC/DC (Ladegerät-Typ + Regelgröße) mit wattbasierter Budget-Verteilung."
         ]
       },
       "0.0.11": {
         "en": "Charging: add chargingSince + charging states and arrival-based allocation (charging first). Add AC 3-phase min power and activity threshold config.",
-        "de": "Laden: chargingSince + charging Zust\u00e4nde und ankunftsbasiertes Verteilen (aktive zuerst). Neue Konfig: AC 3\u2011Phasen Mindestleistung und Aktivit\u00e4tsschwelle."
+        "de": "Laden: chargingSince + charging Zustände und ankunftsbasiertes Verteilen (aktive zuerst). Neue Konfig: AC 3‑Phasen Mindestleistung und Aktivitätsschwelle."
       }
     },
     "titleLang": {
@@ -100,7 +100,9 @@
       "budgetPowerId": "",
       "pauseWhenPeakShavingActive": true,
       "acMinPower3pW": 4200,
-      "activityThresholdW": 200
+      "activityThresholdW": 200,
+      "stopGraceSec": 30,
+      "sessionKeepSec": 300
     },
     "multiUse": {
       "reserveEnabled": false,

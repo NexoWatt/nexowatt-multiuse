@@ -192,6 +192,15 @@ systemDictionary = {
         'en': 'Activity threshold (W)',
         'de': 'Aktivitätsschwelle (W)'
     },
+    'Stop grace (s)': {
+        'en': 'Stop grace (s)',
+        'de': 'Stopp-Nachlaufzeit (s)'
+    },
+    'Session keep time (s)': {
+        'en': 'Session keep time (s)',
+        'de': 'Sitzung beibehalten (s)'
+    },
+
     'AC 3p min power (W)': {
         'en': 'AC 3p min power (W)',
         'de': 'AC 3p Mindestleistung (W)'
@@ -415,6 +424,10 @@ systemDictionary = {
     'fromDatapoint': {
         'en': 'fromDatapoint',
         'de': 'fromDatapoint'
+    },
+    'engine': {
+        'en': 'engine',
+        'de': 'engine'
     },
     'fromPeakShaving': {
         'en': 'fromPeakShaving',

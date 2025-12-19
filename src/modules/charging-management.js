@@ -37,6 +37,8 @@ class ChargingManagementModule extends BaseModule {
         super(adapter, dpRegistry);
         this._known = new Set(); // wallbox channels created
         this._chargingSinceMs = new Map(); // safeKey -> ms since epoch
+        this._chargingLastActiveMs = new Map(); // safeKey -> ms of last detected activity
+        this._chargingLastSeenMs = new Map(); // safeKey -> ms of last processing (cleanup)
     }
 
     _isEnabled() {
@@ -88,6 +90,15 @@ class ChargingManagementModule extends BaseModule {
         await mk('chargingManagement.control.usedW', 'Used (W)', 'number', 'value.power');
         await mk('chargingManagement.control.remainingW', 'Remaining (W)', 'number', 'value.power');
         await mk('chargingManagement.control.pausedByPeakShaving', 'Paused by peak shaving', 'boolean', 'indicator');
+        await this.adapter.setObjectNotExistsAsync('chargingManagement.debug', {
+            type: 'channel',
+            common: { name: 'Debug' },
+            native: {},
+        });
+
+        await mk('chargingManagement.debug.lastRun', 'Last run', 'number', 'value.time');
+        await mk('chargingManagement.debug.sortedOrder', 'Sorted order (safe keys)', 'string', 'text');
+        await mk('chargingManagement.debug.allocations', 'Allocations (JSON)', 'string', 'text');
     }
 
     async _ensureWallboxChannel(key) {
@@ -128,6 +139,10 @@ class ChargingManagementModule extends BaseModule {
         await mk('actualCurrentA', 'Actual current (A)', 'number', 'value.current');
         await mk('charging', 'Charging', 'boolean', 'indicator');
         await mk('chargingSince', 'Charging since (ms)', 'number', 'value.time');
+        await mk('chargingRaw', 'Charging raw (threshold)', 'boolean', 'indicator');
+        await mk('lastActive', 'Last active (ms)', 'number', 'value.time');
+        await mk('idleMs', 'Idle since last active (ms)', 'number', 'value.time');
+        await mk('allocationRank', 'Allocation rank', 'number', 'value');
         await mk('targetCurrentA', 'Target current (A)', 'number', 'value.current');
         await mk('targetPowerW', 'Target power (W)', 'number', 'value.power');
         await mk('applied', 'Applied', 'boolean', 'indicator');
@@ -175,6 +190,11 @@ class ChargingManagementModule extends BaseModule {
 
         const acMinPower3pW = clamp(num(cfg.acMinPower3pW, 4200), 0, 1e12);
         const activityThresholdW = clamp(num(cfg.activityThresholdW, 200), 0, 1e12);
+        const stopGraceSec = clamp(num(cfg.stopGraceSec, 30), 0, 3600);
+        const sessionKeepSec = clamp(num(cfg.sessionKeepSec, 300), 0, 86400);
+        const stopGraceMs = stopGraceSec * 1000;
+        const sessionKeepMs = Math.max(sessionKeepSec, stopGraceSec) * 1000;
+        const sessionCleanupStaleMs = Math.max(sessionKeepMs * 2, 30 * 60 * 1000); // avoid memory leaks for removed wallboxes
         // Budget selection
         const budgetMode = String(cfg.totalBudgetMode || 'unlimited'); // unlimited | static | fromPeakShaving | fromDatapoint
         const staticBudgetW = clamp(num(cfg.staticMaxChargingPowerW, 0), 0, 1e12);
@@ -194,6 +214,9 @@ class ChargingManagementModule extends BaseModule {
         const wbList = [];
 
         const now = Date.now();
+        await this.adapter.setStateAsync('chargingManagement.debug.lastRun', now, true);
+        await this.adapter.setStateAsync('chargingManagement.debug.sortedOrder', '', true);
+        await this.adapter.setStateAsync('chargingManagement.debug.allocations', '[]', true);
         for (const wb of wallboxes) {
             const key = String(wb.key || '').trim();
             if (!key) continue;
@@ -263,17 +286,50 @@ class ChargingManagementModule extends BaseModule {
             // Charging detection (used for arrival-based stepwise allocation)
             const pWNum = (typeof pW === 'number' && Number.isFinite(pW)) ? pW : 0;
             const pWAbs = Math.abs(pWNum);
-            const isCharging = online && enabled && pWAbs >= activityThresholdW;
-
+            const isChargingRaw = online && enabled && pWAbs >= activityThresholdW;
+            
+            // Session tracking / stickiness
+            this._chargingLastSeenMs.set(safe, now);
+            
             let chargingSince = 0;
-            if (isCharging) {
-                const prev = this._chargingSinceMs.get(safe);
-                chargingSince = (typeof prev === 'number' && Number.isFinite(prev) && prev > 0) ? prev : now;
-                this._chargingSinceMs.set(safe, chargingSince);
-            } else {
+            let lastActive = 0;
+            const prevSince = this._chargingSinceMs.get(safe);
+            if (typeof prevSince === 'number' && Number.isFinite(prevSince) && prevSince > 0) chargingSince = prevSince;
+            const prevLastActive = this._chargingLastActiveMs.get(safe);
+            if (typeof prevLastActive === 'number' && Number.isFinite(prevLastActive) && prevLastActive > 0) lastActive = prevLastActive;
+            
+            if (!enabled) {
+                // Disabled by config: clear immediately
+                chargingSince = 0;
+                lastActive = 0;
                 this._chargingSinceMs.delete(safe);
+                this._chargingLastActiveMs.delete(safe);
+            } else if (isChargingRaw) {
+                // If we were idle longer than sessionKeepMs, start a new session
+                if (!chargingSince || !lastActive || (now - lastActive) > sessionKeepMs) chargingSince = now;
+                lastActive = now;
+                this._chargingSinceMs.set(safe, chargingSince);
+                this._chargingLastActiveMs.set(safe, lastActive);
+            } else {
+                // Not actively charging: keep session for a while to avoid splits on short dips
+                if (chargingSince && lastActive) {
+                    const idleMs = now - lastActive;
+                    const offlineTooLong = (!online && idleMs > stopGraceMs);
+                    if (idleMs > sessionKeepMs || offlineTooLong) {
+                        chargingSince = 0;
+                        lastActive = 0;
+                        this._chargingSinceMs.delete(safe);
+                        this._chargingLastActiveMs.delete(safe);
+                    }
+                } else {
+                    this._chargingSinceMs.delete(safe);
+                    this._chargingLastActiveMs.delete(safe);
+                }
             }
-
+            
+            const isCharging = online && enabled && (isChargingRaw || (chargingSince && lastActive && (now - lastActive) <= stopGraceMs));
+            const chargingSinceForState = isCharging ? chargingSince : 0;
+            
             // Determine effective control basis for this device
             const hasSetA = !!setCurrentAId;
             const hasSetW = !!setPowerWId;
@@ -361,7 +417,11 @@ class ChargingManagementModule extends BaseModule {
             await this.adapter.setStateAsync(`${ch}.actualCurrentA`, typeof iA === 'number' ? iA : 0, true);
 
             await this.adapter.setStateAsync(`${ch}.charging`, isCharging, true);
-            await this.adapter.setStateAsync(`${ch}.chargingSince`, chargingSince, true);
+            await this.adapter.setStateAsync(`${ch}.chargingSince`, chargingSinceForState, true);
+            await this.adapter.setStateAsync(`${ch}.chargingRaw`, isChargingRaw, true);
+            await this.adapter.setStateAsync(`${ch}.lastActive`, lastActive || 0, true);
+            await this.adapter.setStateAsync(`${ch}.idleMs`, lastActive ? (now - lastActive) : 0, true);
+            await this.adapter.setStateAsync(`${ch}.allocationRank`, 0, true);
             wbList.push({
                 key,
                 safe,
@@ -370,7 +430,7 @@ class ChargingManagementModule extends BaseModule {
                 enabled,
                 online,
                 charging: isCharging,
-                chargingSinceMs: isCharging ? chargingSince : 0,
+                chargingSinceMs: chargingSinceForState,
                 actualPowerW: pWNum,
                 priority,
                 chargerType,
@@ -395,7 +455,84 @@ class ChargingManagementModule extends BaseModule {
 
         // Determine budget
         let budgetW = Number.POSITIVE_INFINITY;
-        if (budgetMode === 'static') {
+        let effectiveBudgetMode = budgetMode;
+        /** @type {any|null} */
+        let budgetDebug = null;
+
+        const getFirstDpNumber = (keys) => {
+            if (!this.dp) return null;
+            for (const k of keys) {
+                const v = this.dp.getNumber(k, null);
+                if (typeof v === 'number' && Number.isFinite(v)) return v;
+            }
+            return null;
+        };
+
+        if (budgetMode === 'engine') {
+            /** @type {Array<{k:string, w:number}>} */
+            const components = [];
+
+            // Static hard cap (optional)
+            if (staticBudgetW > 0) components.push({ k: 'static', w: staticBudgetW });
+
+            // External cap (optional)
+            const ext = (budgetPowerId && this.dp) ? this.dp.getNumber('cm.budgetPowerW', null) : null;
+            if (typeof ext === 'number' && Number.isFinite(ext) && ext > 0) components.push({ k: 'external', w: ext });
+
+            // Peak-shaving cap (optional)
+            const peak = await this._getPeakShavingBudgetW();
+            if (typeof peak === 'number' && Number.isFinite(peak) && peak > 0) components.push({ k: 'peakShaving', w: peak });
+
+            // Tariff cap (optional via globalDatapoints mapping)
+            const tariff = getFirstDpNumber(['cm.tariffBudgetW', 'cm.tariffLimitW']);
+            if (typeof tariff === 'number' && Number.isFinite(tariff) && tariff > 0) components.push({ k: 'tariff', w: tariff });
+
+            // PV-surplus cap (optional; enabled by mode=pvSurplus or pvSurplusOnly)
+            const pvSurplusOnly = cfg.pvSurplusOnly === true || mode === 'pvSurplus';
+
+            let pvSurplusW = getFirstDpNumber(['cm.pvSurplusW']);
+            const gridW = getFirstDpNumber(['cm.gridPowerW', 'ps.gridPowerW']);
+
+            if (typeof pvSurplusW !== 'number' || !Number.isFinite(pvSurplusW)) {
+                // Convention: negative grid power => export. If your source uses the opposite sign, invert via globalDatapoints.
+                if (typeof gridW === 'number' && Number.isFinite(gridW)) {
+                    pvSurplusW = Math.max(0, -gridW);
+                }
+            }
+
+            if (pvSurplusOnly) {
+                const pvCap = (typeof pvSurplusW === 'number' && Number.isFinite(pvSurplusW) && pvSurplusW > 0) ? pvSurplusW : 0;
+                components.push({ k: 'pvSurplus', w: pvCap });
+            }
+
+            if (components.length) {
+                let min = Number.POSITIVE_INFINITY;
+                for (const c of components) {
+                    const w = Number(c.w);
+                    if (Number.isFinite(w)) min = Math.min(min, w);
+                }
+                budgetW = Number.isFinite(min) ? min : Number.POSITIVE_INFINITY;
+
+                const eps = 0.001;
+                const bind = components
+                    .filter(c => Number.isFinite(Number(c.w)) && Math.abs(Number(c.w) - budgetW) <= eps)
+                    .map(c => c.k);
+
+                effectiveBudgetMode = `engine:${bind.length ? bind.join('+') : 'unlimited'}`;
+            } else {
+                budgetW = Number.POSITIVE_INFINITY;
+                effectiveBudgetMode = 'engine:unlimited';
+            }
+
+            budgetDebug = {
+                engine: true,
+                mode,
+                pvSurplusOnly,
+                gridW: (typeof gridW === 'number' && Number.isFinite(gridW)) ? gridW : null,
+                pvSurplusW: (typeof pvSurplusW === 'number' && Number.isFinite(pvSurplusW)) ? pvSurplusW : null,
+                components,
+            };
+        } else if (budgetMode === 'static') {
             budgetW = staticBudgetW > 0 ? staticBudgetW : Number.POSITIVE_INFINITY;
         } else if (budgetMode === 'fromDatapoint') {
             const b = (budgetPowerId && this.dp) ? this.dp.getNumber('cm.budgetPowerW', null) : null;
@@ -413,7 +550,7 @@ class ChargingManagementModule extends BaseModule {
         const controlActive = mode !== 'off' && !paused;
         await this.adapter.setStateAsync('chargingManagement.control.active', controlActive, true);
         await this.adapter.setStateAsync('chargingManagement.control.mode', mode, true);
-        await this.adapter.setStateAsync('chargingManagement.control.budgetMode', budgetMode, true);
+        await this.adapter.setStateAsync('chargingManagement.control.budgetMode', effectiveBudgetMode, true);
         await this.adapter.setStateAsync('chargingManagement.control.pausedByPeakShaving', paused, true);
 
         if (mode === 'off') {
@@ -421,6 +558,16 @@ class ChargingManagementModule extends BaseModule {
             await this.adapter.setStateAsync('chargingManagement.control.budgetW', Number.isFinite(budgetW) ? budgetW : 0, true);
             await this.adapter.setStateAsync('chargingManagement.control.usedW', 0, true);
             await this.adapter.setStateAsync('chargingManagement.control.remainingW', Number.isFinite(budgetW) ? budgetW : 0, true);
+            // Cleanup session tracking for removed wallboxes (avoid memory leaks)
+            for (const [safeKey, lastSeenTs] of this._chargingLastSeenMs.entries()) {
+                const ls = (typeof lastSeenTs === 'number' && Number.isFinite(lastSeenTs)) ? lastSeenTs : 0;
+                if (!ls || (now - ls) > sessionCleanupStaleMs) {
+                    this._chargingLastSeenMs.delete(safeKey);
+                    this._chargingLastActiveMs.delete(safeKey);
+                    this._chargingSinceMs.delete(safeKey);
+                }
+            }
+
             await this.adapter.setStateAsync('chargingManagement.summary.totalTargetPowerW', 0, true);
             await this.adapter.setStateAsync('chargingManagement.summary.totalTargetCurrentA', 0, true);
             await this.adapter.setStateAsync('chargingManagement.summary.lastUpdate', Date.now(), true);
@@ -432,6 +579,16 @@ class ChargingManagementModule extends BaseModule {
             await this.adapter.setStateAsync('chargingManagement.control.budgetW', Number.isFinite(budgetW) ? budgetW : 0, true);
             await this.adapter.setStateAsync('chargingManagement.control.usedW', 0, true);
             await this.adapter.setStateAsync('chargingManagement.control.remainingW', Number.isFinite(budgetW) ? budgetW : 0, true);
+            // Cleanup session tracking for removed wallboxes (avoid memory leaks)
+            for (const [safeKey, lastSeenTs] of this._chargingLastSeenMs.entries()) {
+                const ls = (typeof lastSeenTs === 'number' && Number.isFinite(lastSeenTs)) ? lastSeenTs : 0;
+                if (!ls || (now - ls) > sessionCleanupStaleMs) {
+                    this._chargingLastSeenMs.delete(safeKey);
+                    this._chargingLastActiveMs.delete(safeKey);
+                    this._chargingSinceMs.delete(safeKey);
+                }
+            }
+
             await this.adapter.setStateAsync('chargingManagement.summary.totalTargetPowerW', 0, true);
             await this.adapter.setStateAsync('chargingManagement.summary.totalTargetCurrentA', 0, true);
             await this.adapter.setStateAsync('chargingManagement.summary.lastUpdate', Date.now(), true);
@@ -459,6 +616,26 @@ class ChargingManagementModule extends BaseModule {
                 const bsk = String(b.safe || '');
                 return ask.localeCompare(bsk);
             });
+
+        // MU3.1: expose allocation order for transparency
+        for (let i = 0; i < sorted.length; i++) {
+            const w = sorted[i];
+            await this.adapter.setStateAsync(`${w.ch}.allocationRank`, i + 1, true);
+        }
+        await this.adapter.setStateAsync('chargingManagement.debug.sortedOrder', sorted.map(w => w.safe).join(','), true);
+
+        const debugAlloc = [];
+        // MU4.1: publish budget engine inputs for transparency in debug output
+        try {
+            debugAlloc.push({
+                type: 'budget',
+                budgetW: Number.isFinite(budgetW) ? budgetW : null,
+                budgetMode: effectiveBudgetMode,
+                details: budgetDebug,
+            });
+        } catch {
+            // ignore
+        }
 
         let remainingW = budgetW;
         let usedW = 0;
@@ -567,6 +744,7 @@ class ChargingManagementModule extends BaseModule {
             await this.adapter.setStateAsync(`${w.ch}.targetPowerW`, targetW, true);
             await this.adapter.setStateAsync(`${w.ch}.applied`, applied, true);
             await this.adapter.setStateAsync(`${w.ch}.reason`, reason, true);
+            debugAlloc.push({ safe: w.safe, name: w.name, charging: !!w.charging, chargingSinceMs: w.chargingSinceMs || 0, priority: w.priority, controlBasis: w.controlBasis, chargerType: w.chargerType, targetW, targetA, applied, reason });
         }
 
         // wallboxes that are disabled/offline: expose targets as 0 (no writes)
@@ -578,10 +756,27 @@ class ChargingManagementModule extends BaseModule {
             await this.adapter.setStateAsync(`${w.ch}.reason`, w.enabled ? (w.online ? 'skipped' : 'offline') : 'disabled', true);
         }
 
+        try {
+            const s = JSON.stringify(debugAlloc);
+            await this.adapter.setStateAsync('chargingManagement.debug.allocations', s.length > 20000 ? (s.slice(0, 20000) + '...') : s, true);
+        } catch {
+            await this.adapter.setStateAsync('chargingManagement.debug.allocations', '[]', true);
+        }
+
         await this.adapter.setStateAsync('chargingManagement.control.status', 'ok', true);
         await this.adapter.setStateAsync('chargingManagement.control.budgetW', Number.isFinite(budgetW) ? budgetW : 0, true);
         await this.adapter.setStateAsync('chargingManagement.control.usedW', Number.isFinite(budgetW) ? usedW : totalTargetPowerW, true);
         await this.adapter.setStateAsync('chargingManagement.control.remainingW', Number.isFinite(budgetW) ? remainingW : 0, true);
+
+            // Cleanup session tracking for removed wallboxes (avoid memory leaks)
+            for (const [safeKey, lastSeenTs] of this._chargingLastSeenMs.entries()) {
+                const ls = (typeof lastSeenTs === 'number' && Number.isFinite(lastSeenTs)) ? lastSeenTs : 0;
+                if (!ls || (now - ls) > sessionCleanupStaleMs) {
+                    this._chargingLastSeenMs.delete(safeKey);
+                    this._chargingLastActiveMs.delete(safeKey);
+                    this._chargingSinceMs.delete(safeKey);
+                }
+            }
 
         await this.adapter.setStateAsync('chargingManagement.summary.totalTargetPowerW', totalTargetPowerW, true);
         await this.adapter.setStateAsync('chargingManagement.summary.totalTargetCurrentA', totalTargetCurrentA, true);

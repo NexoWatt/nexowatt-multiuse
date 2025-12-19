@@ -1,3 +1,12 @@
+## 0.0.15 (2025-12-19)
+- Charging-management: add budget engine mode integrating caps from static/external/peak-shaving plus optional PV-surplus (from grid export or cm.pvSurplusW) and optional tariff cap (cm.tariffBudgetW).
+
+## 0.0.14 (2025-12-19)
+- Charging-management: add transparency states (chargingRaw, lastActive, idleMs, allocationRank) and debug outputs (sorted order + allocation JSON).
+
+## 0.0.13 (2025-12-19)
+- Charging-management: stickiness/session tracking with start/stop/reset rules (stopGraceSec + sessionKeepSec) to prevent flapping and preserve arrival order on short dips.
+
 ## 0.0.12 (2025-12-19)
 - Charging-management: deterministic wallbox ordering (charging → chargingSinceMs → priority/fallback) and correct charging flags in allocation list.
 
