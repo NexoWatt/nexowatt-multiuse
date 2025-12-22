@@ -850,6 +850,70 @@
       "type": "panel",
       "label": "Multi-Use",
       "items": {
+        "divider_multiuse_budget": {
+          "type": "divider",
+          "label": "Budget / Precedence"
+        },
+        "multiUse.staleTimeoutSec": {
+          "type": "number",
+          "label": "Meter stale timeout (s)",
+          "min": 0,
+          "max": 3600
+        },
+        "multiUse.voltageV": {
+          "type": "number",
+          "label": "Voltage (V)",
+          "min": 100,
+          "max": 260
+        },
+        "multiUse.defaultPhases": {
+          "type": "select",
+          "label": "Default phases",
+          "options": [
+            {
+              "label": "1",
+              "value": 1
+            },
+            {
+              "label": "3",
+              "value": 3
+            }
+          ]
+        },
+        "multiUse.externalLimitWKey": {
+          "type": "text",
+          "label": "External limit DP key (W)"
+        },
+        "multiUse.tariffBudgetWKey": {
+          "type": "text",
+          "label": "Tariff budget DP key (W)"
+        },
+        "multiUse.pvBudgetWKey": {
+          "type": "text",
+          "label": "PV budget DP key (W)"
+        },
+        "multiUse.comfortBudgetW": {
+          "type": "number",
+          "label": "Comfort budget (W)",
+          "min": 0,
+          "max": 2000000
+        },
+        "multiUse.stepA": {
+          "type": "number",
+          "label": "Step (A)",
+          "min": 0,
+          "max": 10
+        },
+        "multiUse.stepW": {
+          "type": "number",
+          "label": "Step (W)",
+          "min": 0,
+          "max": 5000
+        },
+        "divider_multiuse_reserve": {
+          "type": "divider",
+          "label": "Reserve"
+        },
         "multiUse.reserveEnabled": {
           "type": "checkbox",
           "label": "Reserve enabled"

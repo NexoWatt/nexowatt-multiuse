@@ -177,5 +177,11 @@
   "Power (W)": "Leistung (W)",
   "None": "Keine",
   "EVCS": "Wallbox",
-  "Load": "Verbraucher"
+  "Load": "Verbraucher",
+  "Budget / Precedence": "Budget / Priorität",
+  "Reserve": "Reserve",
+  "External limit DP key (W)": "Externer Limit-DP-Key (W)",
+  "Tariff budget DP key (W)": "Tarif-Budget-DP-Key (W)",
+  "PV budget DP key (W)": "PV-Budget-DP-Key (W)",
+  "Comfort budget (W)": "Komfort-Budget (W)"
 }

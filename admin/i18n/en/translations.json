@@ -177,5 +177,11 @@
   "Power (W)": "Power (W)",
   "None": "None",
   "EVCS": "EVCS",
-  "Load": "Load"
+  "Load": "Load",
+  "Budget / Precedence": "Budget / Precedence",
+  "Reserve": "Reserve",
+  "External limit DP key (W)": "External limit DP key (W)",
+  "Tariff budget DP key (W)": "Tariff budget DP key (W)",
+  "PV budget DP key (W)": "PV budget DP key (W)",
+  "Comfort budget (W)": "Comfort budget (W)"
 }

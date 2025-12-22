@@ -29,6 +29,60 @@ function normalizeControlBasis(b) {
     return s || 'auto';
 }
 
+
+function clamp(v, minV, maxV) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return minV;
+    if (n < minV) return minV;
+    if (n > maxV) return maxV;
+    return n;
+}
+
+function floorToStep(v, step) {
+    const n = Number(v);
+    const s = Number(step);
+    if (!Number.isFinite(n)) return 0;
+    if (!Number.isFinite(s) || s <= 0) return n;
+    // Always round down to avoid overshoot
+    const k = Math.floor(n / s);
+    const out = k * s;
+    // avoid -0
+    return out > 0 ? out : 0;
+}
+
+function wattsFromA(amps, voltageV, phases) {
+    const a = Number(amps);
+    const v = Number(voltageV);
+    const p = Number(phases);
+    if (!Number.isFinite(a) || !Number.isFinite(v) || !Number.isFinite(p) || a <= 0) return 0;
+    return a * v * p;
+}
+
+function ampsFromW(watts, voltageV, phases) {
+    const w = Number(watts);
+    const v = Number(voltageV);
+    const p = Number(phases);
+    if (!Number.isFinite(w) || !Number.isFinite(v) || !Number.isFinite(p) || w <= 0) return 0;
+    const denom = v * p;
+    if (denom <= 0) return 0;
+    return w / denom;
+}
+
+function stateAgeMs(st) {
+    if (!st) return Number.POSITIVE_INFINITY;
+    const ts = Number(st.ts);
+    const lc = Number(st.lc);
+    const t = Number.isFinite(lc) ? lc : (Number.isFinite(ts) ? ts : NaN);
+    if (!Number.isFinite(t) || t <= 0) return Number.POSITIVE_INFINITY;
+    const age = Date.now() - t;
+    return Number.isFinite(age) && age >= 0 ? age : Number.POSITIVE_INFINITY;
+}
+
+function stateNum(st, dflt = null) {
+    const n = Number(st && st.val);
+    return Number.isFinite(n) ? n : dflt;
+}
+
 /**
  * MU7.1: Multi-Use Orchestrator Start
  *
@@ -155,6 +209,56 @@ class MultiUseModule extends BaseModule {
             native: {},
         });
 
+
+        await this.adapter.setObjectNotExistsAsync('multiUse.control.reason', {
+            type: 'state',
+            common: { name: 'Reason', type: 'string', role: 'text', read: true, write: false, def: ReasonCodes.OK },
+            native: {},
+        });
+
+        await this.adapter.setObjectNotExistsAsync('multiUse.control.requestW', {
+            type: 'state',
+            common: { name: 'Requested budget (W)', type: 'number', role: 'value.power', unit: 'W', read: true, write: false, def: 0 },
+            native: {},
+        });
+
+        await this.adapter.setObjectNotExistsAsync('multiUse.control.capW', {
+            type: 'state',
+            common: { name: 'Budget cap (W)', type: 'number', role: 'value.power', unit: 'W', read: true, write: false, def: 0 },
+            native: {},
+        });
+
+        await this.adapter.setObjectNotExistsAsync('multiUse.control.budgetW', {
+            type: 'state',
+            common: { name: 'Effective budget (W)', type: 'number', role: 'value.power', unit: 'W', read: true, write: false, def: 0 },
+            native: {},
+        });
+
+        await this.adapter.setObjectNotExistsAsync('multiUse.control.budgetSource', {
+            type: 'state',
+            common: { name: 'Budget source', type: 'string', role: 'text', read: true, write: false, def: 'NONE' },
+            native: {},
+        });
+
+        await this.adapter.setObjectNotExistsAsync('multiUse.control.capSources', {
+            type: 'state',
+            common: { name: 'Cap sources', type: 'string', role: 'text', read: true, write: false, def: '' },
+            native: {},
+        });
+
+        await this.adapter.setObjectNotExistsAsync('multiUse.control.reserveW', {
+            type: 'state',
+            common: { name: 'Reserve deducted (W)', type: 'number', role: 'value.power', unit: 'W', read: true, write: false, def: 0 },
+            native: {},
+        });
+
+        await this.adapter.setObjectNotExistsAsync('multiUse.summary.remainingBudgetW', {
+            type: 'state',
+            common: { name: 'Remaining budget (W)', type: 'number', role: 'value.power', unit: 'W', read: true, write: false, def: 0 },
+            native: {},
+        });
+
+
         await this.adapter.setObjectNotExistsAsync('multiUse.summary.consumerCount', {
             type: 'state',
             common: { name: 'Consumers configured', type: 'number', role: 'value', read: true, write: false, def: 0 },
@@ -207,6 +311,32 @@ class MultiUseModule extends BaseModule {
                 native: {},
             });
 
+
+            await this.adapter.setObjectNotExistsAsync(`${base}.basis`, {
+                type: 'state',
+                common: { name: 'Applied control basis', type: 'string', role: 'text', read: true, write: false, def: c.controlBasis },
+                native: {},
+            });
+
+            await this.adapter.setObjectNotExistsAsync(`${base}.requestW`, {
+                type: 'state',
+                common: { name: 'Requested power (W)', type: 'number', role: 'value.power', unit: 'W', read: true, write: false, def: 0 },
+                native: {},
+            });
+
+            await this.adapter.setObjectNotExistsAsync(`${base}.allocatedW`, {
+                type: 'state',
+                common: { name: 'Allocated power (W)', type: 'number', role: 'value.power', unit: 'W', read: true, write: false, def: 0 },
+                native: {},
+            });
+
+            await this.adapter.setObjectNotExistsAsync(`${base}.allocatedA`, {
+                type: 'state',
+                common: { name: 'Allocated current (A)', type: 'number', role: 'value.current', unit: 'A', read: true, write: false, def: 0 },
+                native: {},
+            });
+
+
             await this.adapter.setObjectNotExistsAsync(`${base}.applied`, {
                 type: 'state',
                 common: { name: 'Applied', type: 'boolean', role: 'indicator', read: true, write: false, def: false },
@@ -235,61 +365,238 @@ class MultiUseModule extends BaseModule {
         await this.adapter.setStateAsync('multiUse.summary.consumerCount', this._consumers.length, true);
     }
 
-    async tick() {
+        async tick() {
         if (!this._isEnabled()) return;
 
-        // Lazy init if adapter restarted without calling init (defensive)
-        if (!Array.isArray(this._consumers) || this._consumers.length === 0) {
-            this._loadConsumersFromConfig();
+        const now = Date.now();
+        const dp = this.dp;
+        const cfg = this.adapter.config.multiUse || {};
+        const ctx = { adapter: this.adapter, dp };
+
+        const staleTimeoutSec = clamp(num(cfg.staleTimeoutSec, 15), 1, 3600);
+        const staleTimeoutMs = staleTimeoutSec * 1000;
+
+        const voltageV = clamp(num(cfg.voltageV, 230), 100, 260);
+        const defaultPhases = clamp(num(cfg.defaultPhases, 3), 1, 3);
+
+        const stepW = clamp(num(cfg.stepW, 0), 0, 5000);
+        const stepA = clamp(num(cfg.stepA, 0), 0, 100);
+
+        const reserveEnabled = !!cfg.reserveEnabled;
+        const reserveMinW = clamp(num(cfg.reserveMinW, 0), 0, 100000);
+        const reserveW = reserveEnabled ? reserveMinW : 0;
+
+        // ---- Determine requested budget (lower precedence sources) ----
+        let requestW = 0;
+        let budgetSource = 'NONE';
+
+        const tariffKey = String(cfg.tariffBudgetWKey || '').trim();
+        const pvKey = String(cfg.pvBudgetWKey || '').trim();
+
+        if (tariffKey && dp && typeof dp.getNumberFresh === 'function') {
+            const v = dp.getNumberFresh(tariffKey, staleTimeoutMs, null);
+            if (Number.isFinite(v)) {
+                requestW = Math.max(0, v);
+                budgetSource = 'TARIFF';
+            }
         }
 
-        const now = Date.now();
-        let appliedCount = 0;
+        if (budgetSource === 'NONE' && pvKey && dp && typeof dp.getNumberFresh === 'function') {
+            const v = dp.getNumberFresh(pvKey, staleTimeoutMs, null);
+            if (Number.isFinite(v)) {
+                requestW = Math.max(0, v);
+                budgetSource = 'PV';
+            }
+        }
 
-        const ctx = { dp: this.dp, adapter: this.adapter };
+        if (budgetSource === 'NONE') {
+            requestW = Math.max(0, num(cfg.comfortBudgetW, 0));
+            budgetSource = 'COMFORT';
+        }
+
+        // Reserve (always deducted to keep headroom for uncontrolled loads)
+        const requestAfterReserveW = Math.max(0, requestW - reserveW);
+
+        // ---- Apply higher-precedence caps (Netzschutz > external > peakshaving) ----
+        let capW = Number.POSITIVE_INFINITY;
+        /** @type {Array<string>} */
+        const capSources = [];
+
+        let controlReason = ReasonCodes.OK;
+
+        // Netzschutz: if PeakShaving reports STALE_METER we force budget to 0
+        const psReasonSt = await this.adapter.getStateAsync('peakShaving.control.reason').catch(() => null);
+        const psReason = String(psReasonSt?.val || '').trim();
+        if (psReason === ReasonCodes.STALE_METER) {
+            capW = 0;
+            capSources.push('NET_STALE');
+            controlReason = ReasonCodes.STALE_METER;
+        }
+
+        // External limit cap (strict: if configured but stale/invalid => failsafe)
+        const externalKey = String(cfg.externalLimitWKey || '').trim();
+        if (externalKey && dp && typeof dp.isStale === 'function' && typeof dp.getNumberFresh === 'function') {
+            const stale = dp.isStale(externalKey, staleTimeoutMs);
+            if (stale) {
+                capW = 0;
+                capSources.push('EXTERNAL_STALE');
+                controlReason = ReasonCodes.STALE_METER;
+            } else {
+                const ext = dp.getNumberFresh(externalKey, staleTimeoutMs, null);
+                if (!Number.isFinite(ext)) {
+                    capW = 0;
+                    capSources.push('EXTERNAL_INVALID');
+                    controlReason = ReasonCodes.STALE_METER;
+                } else {
+                    capW = Math.min(capW, Math.max(0, ext));
+                    capSources.push('EXTERNAL');
+                }
+            }
+        }
+
+        // PeakShaving cap (only when PS is active; prevents MU from "re-increasing" after PS reductions)
+        const psActiveSt = await this.adapter.getStateAsync('peakShaving.control.active').catch(() => null);
+        const psActive = !!psActiveSt?.val;
+        if (psActive) {
+            const availSt = await this.adapter.getStateAsync('peakShaving.dynamic.availableForControlledW').catch(() => null);
+            const age = stateAgeMs(availSt);
+            const avail = stateNum(availSt, null);
+            if (!(Number.isFinite(avail)) || age > staleTimeoutMs) {
+                capW = Math.min(capW, 0);
+                capSources.push('PEAK_SHAVING_STALE');
+            } else {
+                capW = Math.min(capW, Math.max(0, avail));
+                capSources.push('PEAK_SHAVING');
+            }
+        }
+
+        // Final effective budget
+        let budgetW = Math.min(requestAfterReserveW, capW);
+        if (!Number.isFinite(budgetW) || budgetW < 0) budgetW = 0;
+
+        if (controlReason === ReasonCodes.OK) {
+            if (requestAfterReserveW <= 0) controlReason = ReasonCodes.NO_BUDGET;
+            else if (budgetW + 0.0001 < requestAfterReserveW) controlReason = ReasonCodes.LIMITED_BY_BUDGET;
+            else controlReason = ReasonCodes.OK;
+        }
+
+        // Publish control states
+        await this.adapter.setStateAsync('multiUse.control.reason', controlReason, true);
+        await this.adapter.setStateAsync('multiUse.control.requestW', Math.round(requestAfterReserveW), true);
+        await this.adapter.setStateAsync('multiUse.control.capW', Number.isFinite(capW) ? Math.round(capW) : 0, true);
+        await this.adapter.setStateAsync('multiUse.control.budgetW', Math.round(budgetW), true);
+        await this.adapter.setStateAsync('multiUse.control.budgetSource', budgetSource, true);
+        await this.adapter.setStateAsync('multiUse.control.capSources', capSources.join(','), true);
+        await this.adapter.setStateAsync('multiUse.control.reserveW', Math.round(reserveW), true);
+
+        // ---- Allocate budget to consumers deterministically ----
+        let remainingW = budgetW;
+        let appliedCount = 0;
 
         for (const c of this._consumers) {
             const base = `multiUse.consumers.${c.id}`;
 
-            const stW = await this.adapter.getStateAsync(`${base}.targetW`);
-            const stA = await this.adapter.getStateAsync(`${base}.targetA`);
-            const targetW = num(stW?.val, num(c.defaultTargetW, 0));
-            const targetA = num(stA?.val, num(c.defaultTargetA, 0));
+            const stW = await this.adapter.getStateAsync(`${base}.targetW`).catch(() => null);
+            const stA = await this.adapter.getStateAsync(`${base}.targetA`).catch(() => null);
+
+            const reqTargetW = num(stW?.val, 0);
+            const reqTargetA = num(stA?.val, 0);
+
+            const hasRequest = (reqTargetW > 0) || (reqTargetA > 0);
 
             let reason = ReasonCodes.OK;
             let status = 'skipped';
             let applied = false;
 
-            // If no target is set, we still act deterministically but do not write setpoints
-            if (!(targetW > 0 || targetA > 0)) {
+            // Determine consumer basis (auto resolves to available setpoint dp)
+            let basis = String(c.controlBasis || 'auto');
+            if (basis === 'auto') {
+                if (c.type === 'load') basis = 'powerW';
+                else if (c.setWKey) basis = 'powerW';
+                else if (c.setAKey) basis = 'currentA';
+                else basis = 'none';
+            }
+
+            // Requested in W (unified)
+            const requestedW = reqTargetW > 0 ? reqTargetW : wattsFromA(reqTargetA, voltageV, defaultPhases);
+
+            // Allocation
+            let allocatedW = 0;
+            let allocatedA = 0;
+
+            if (!hasRequest) {
                 reason = ReasonCodes.NO_SETPOINT;
                 status = 'no_target';
                 applied = false;
-            } else {
-                const res = await applySetpoint(ctx, c, { targetW, targetA });
+            } else if (controlReason === ReasonCodes.STALE_METER) {
+                // Safety: always drive to 0 when our upstream safety signal is stale
+                allocatedW = 0;
+                allocatedA = 0;
+                reason = ReasonCodes.STALE_METER;
+                status = 'failsafe_stale';
+                const res = await applySetpoint(ctx, c, { targetW: 0, targetA: 0, basis });
                 applied = !!res?.applied;
-                status = String(res?.status || (applied ? 'applied' : 'unknown'));
+                status = String(res?.status || status);
+                if (applied) appliedCount++;
+            } else if (basis === 'none') {
+                reason = ReasonCodes.SKIPPED;
+                status = 'control_disabled';
+                applied = false;
+            } else {
+                // Budget allocation in W first
+                const wantW = Math.max(0, requestedW);
+                const takeW = Math.min(wantW, Math.max(0, remainingW));
 
-                if (status === 'no_setpoint_dp') reason = ReasonCodes.NO_SETPOINT;
-                else if (status === 'unsupported_type') reason = ReasonCodes.SKIPPED;
-                else if (!applied) reason = ReasonCodes.UNKNOWN;
-                else reason = ReasonCodes.OK;
+                if (basis === 'powerW') {
+                    allocatedW = floorToStep(takeW, stepW);
+                    allocatedA = 0;
+                    remainingW = Math.max(0, remainingW - allocatedW);
+                } else { // currentA
+                    // convert W->A, step, then back to W for remaining
+                    const rawA = ampsFromW(takeW, voltageV, defaultPhases);
+                    allocatedA = floorToStep(rawA, stepA);
+                    allocatedW = wattsFromA(allocatedA, voltageV, defaultPhases);
+                    remainingW = Math.max(0, remainingW - allocatedW);
+                }
 
+                // Determine reason
+                if (allocatedW <= 0.0001) {
+                    reason = ReasonCodes.NO_BUDGET;
+                    status = 'budget_zero';
+                } else if (allocatedW + 0.0001 < wantW) {
+                    reason = ReasonCodes.LIMITED_BY_BUDGET;
+                    status = 'allocated_limited';
+                } else {
+                    reason = ReasonCodes.ALLOCATED;
+                    status = 'allocated';
+                }
+
+                const res = await applySetpoint(ctx, c, { targetW: allocatedW, targetA: allocatedA, basis });
+                applied = !!res?.applied;
+                status = String(res?.status || status);
                 if (applied) appliedCount++;
             }
 
             // Write per-consumer result only if changed (reduce state spam)
             const prev = this._last.get(c.id);
-            const next = { targetW, targetA, applied, status, reason };
+            const next = { reqTargetW, reqTargetA, requestedW: Math.round(requestedW), allocatedW: Math.round(allocatedW), allocatedA, basis, applied, status, reason };
             const changed = !prev
-                || prev.targetW !== next.targetW
-                || prev.targetA !== next.targetA
+                || prev.reqTargetW !== next.reqTargetW
+                || prev.reqTargetA !== next.reqTargetA
+                || prev.requestedW !== next.requestedW
+                || prev.allocatedW !== next.allocatedW
+                || prev.allocatedA !== next.allocatedA
+                || prev.basis !== next.basis
                 || prev.applied !== next.applied
                 || prev.status !== next.status
                 || prev.reason !== next.reason;
 
             if (changed) {
                 this._last.set(c.id, next);
+                await this.adapter.setStateAsync(`${base}.basis`, basis, true);
+                await this.adapter.setStateAsync(`${base}.requestW`, next.requestedW, true);
+                await this.adapter.setStateAsync(`${base}.allocatedW`, next.allocatedW, true);
+                await this.adapter.setStateAsync(`${base}.allocatedA`, Number.isFinite(next.allocatedA) ? Number(next.allocatedA.toFixed(3)) : 0, true);
                 await this.adapter.setStateAsync(`${base}.applied`, applied, true);
                 await this.adapter.setStateAsync(`${base}.status`, status, true);
                 await this.adapter.setStateAsync(`${base}.reason`, reason, true);
@@ -305,9 +612,10 @@ class MultiUseModule extends BaseModule {
         await this.adapter.setStateAsync('multiUse.control.status', status, true);
         await this.adapter.setStateAsync('multiUse.control.lastTickTs', now, true);
         await this.adapter.setStateAsync('multiUse.summary.appliedCount', appliedCount, true);
+        await this.adapter.setStateAsync('multiUse.summary.remainingBudgetW', Math.round(Math.max(0, remainingW)), true);
 
         if (this.adapter?.log?.debug) {
-            this.adapter.log.debug(`[multiUse] tick consumers=${this._consumers.length} applied=${appliedCount} status=${status}`);
+            this.adapter.log.debug(`[multiUse] tick consumers=${this._consumers.length} applied=${appliedCount} status=${status} budgetW=${Math.round(budgetW)} remainingW=${Math.round(remainingW)} reason=${controlReason}`);
         }
     }
 }

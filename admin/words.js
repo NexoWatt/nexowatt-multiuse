@@ -696,4 +696,33 @@ systemDictionary = {
         'de': "Verbraucher"
     },
 
+
+'Budget / Precedence': {
+    'en': 'Budget / Precedence',
+    'de': 'Budget / Priorität'
+},
+'Reserve': {
+    'en': 'Reserve',
+    'de': 'Reserve'
+},
+'External limit DP key (W)': {
+    'en': 'External limit DP key (W)',
+    'de': 'Externer Limit-DP-Key (W)'
+},
+'Tariff budget DP key (W)': {
+    'en': 'Tariff budget DP key (W)',
+    'de': 'Tarif-Budget-DP-Key (W)'
+},
+'PV budget DP key (W)': {
+    'en': 'PV budget DP key (W)',
+    'de': 'PV-Budget-DP-Key (W)'
+},
+'Comfort budget (W)': {
+    'en': 'Comfort budget (W)',
+    'de': 'Komfort-Budget (W)'
+},
+'Step (W)': {
+    'en': 'Step (W)',
+    'de': 'Schritt (W)'
+},
 };

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.32 (2025-12-22)
+
+* (MU7.2) Multi-Use Budget Precedence: PeakShaving active > External limit DP > Tariff/PV/Comfort > Unlimited; deterministic allocation across consumers; publishes budget diagnostics and effective targets per consumer.
+
 ## 0.0.31 (2025-12-22)
 
 * (MU7.1) Multi-Use Orchestrator Start: Multi-Use module is no longer stub. Reads configured consumers, exposes per-consumer targetW/targetA states, applies setpoints deterministically via applySetpoint(), and publishes applied/status/reason.
