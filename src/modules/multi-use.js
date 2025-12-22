@@ -2,7 +2,7 @@
 
 const { BaseModule } = require('./base');
 const { applySetpoint } = require('../consumers');
-const { ReasonCodes } = require('../reasons');
+const { ReasonCodes, normalizeReason } = require('../reasons');
 
 function num(v, dflt = 0) {
     const n = Number(v);
@@ -100,7 +100,10 @@ class MultiUseModule extends BaseModule {
         this._consumers = [];
         /** @type {Map<string, {targetW:number,targetA:number,applied:boolean,status:string,reason:string}>} */
         this._last = new Map();
-    }
+    
+        /** @type {Map<string, any>} */
+        this._stateCache = new Map();
+}
 
     _isEnabled() {
         return !!this.adapter?.config?.enableMultiUse;
@@ -161,6 +164,48 @@ class MultiUseModule extends BaseModule {
 
         this._consumers = consumers;
     }
+
+
+    async _setStateIfChanged(id, val) {
+        const v = (typeof val === 'number' && !Number.isFinite(val)) ? null : val;
+        const prev = this._stateCache.get(id);
+        if (prev === v) return;
+        this._stateCache.set(id, v);
+        await this.adapter.setStateAsync(id, v, true);
+    }
+
+    async _seedLastFromStates() {
+        // Seed per-consumer last-result cache from existing states to reduce write churn after restart.
+        for (const c of this._consumers) {
+            const base = `multiUse.consumers.${c.id}`;
+            const read = async (id) => this.adapter.getStateAsync(id).catch(() => null);
+
+            const stTargetW = await read(`${base}.targetW`);
+            const stTargetA = await read(`${base}.targetA`);
+            const stBasis = await read(`${base}.basis`);
+            const stReqW = await read(`${base}.requestW`);
+            const stAllocW = await read(`${base}.allocatedW`);
+            const stAllocA = await read(`${base}.allocatedA`);
+            const stApplied = await read(`${base}.applied`);
+            const stStatus = await read(`${base}.status`);
+            const stReason = await read(`${base}.reason`);
+
+            const next = {
+                reqTargetW: num(stTargetW?.val, 0),
+                reqTargetA: num(stTargetA?.val, 0),
+                requestedW: num(stReqW?.val, 0),
+                allocatedW: num(stAllocW?.val, 0),
+                allocatedA: num(stAllocA?.val, 0),
+                basis: String(stBasis?.val || c.controlBasis || 'auto'),
+                applied: !!stApplied?.val,
+                status: String(stStatus?.val || ''),
+                reason: normalizeReason(stReason?.val || ReasonCodes.OK),
+            };
+
+            this._last.set(c.id, next);
+        }
+    }
+
 
     async init() {
         if (!this._isEnabled()) return;
@@ -362,10 +407,11 @@ class MultiUseModule extends BaseModule {
             });
         }
 
-        await this.adapter.setStateAsync('multiUse.summary.consumerCount', this._consumers.length, true);
+        await this._setStateIfChanged('multiUse.summary.consumerCount', this._consumers.length);
+        await this._seedLastFromStates().catch(() => undefined);
     }
 
-        async tick() {
+    async tick() {
         if (!this._isEnabled()) return;
 
         const now = Date.now();
@@ -481,17 +527,18 @@ class MultiUseModule extends BaseModule {
         }
 
         // Publish control states
-        await this.adapter.setStateAsync('multiUse.control.reason', controlReason, true);
-        await this.adapter.setStateAsync('multiUse.control.requestW', Math.round(requestAfterReserveW), true);
-        await this.adapter.setStateAsync('multiUse.control.capW', Number.isFinite(capW) ? Math.round(capW) : 0, true);
-        await this.adapter.setStateAsync('multiUse.control.budgetW', Math.round(budgetW), true);
-        await this.adapter.setStateAsync('multiUse.control.budgetSource', budgetSource, true);
-        await this.adapter.setStateAsync('multiUse.control.capSources', capSources.join(','), true);
-        await this.adapter.setStateAsync('multiUse.control.reserveW', Math.round(reserveW), true);
+        await this._setStateIfChanged('multiUse.control.reason', controlReason);
+        await this._setStateIfChanged('multiUse.control.requestW', Math.round(requestAfterReserveW));
+        await this._setStateIfChanged('multiUse.control.capW', Number.isFinite(capW) ? Math.round(capW) : 0);
+        await this._setStateIfChanged('multiUse.control.budgetW', Math.round(budgetW));
+        await this._setStateIfChanged('multiUse.control.budgetSource', budgetSource);
+        await this._setStateIfChanged('multiUse.control.capSources', capSources.join(','));
+        await this._setStateIfChanged('multiUse.control.reserveW', Math.round(reserveW));
 
         // ---- Allocate budget to consumers deterministically ----
         let remainingW = budgetW;
         let appliedCount = 0;
+        let totalRequestedW = 0;
 
         for (const c of this._consumers) {
             const base = `multiUse.consumers.${c.id}`;
@@ -519,15 +566,34 @@ class MultiUseModule extends BaseModule {
 
             // Requested in W (unified)
             const requestedW = reqTargetW > 0 ? reqTargetW : wattsFromA(reqTargetA, voltageV, defaultPhases);
+            totalRequestedW += Math.max(0, requestedW);
 
             // Allocation
             let allocatedW = 0;
             let allocatedA = 0;
 
             if (!hasRequest) {
-                reason = ReasonCodes.NO_SETPOINT;
-                status = 'no_target';
-                applied = false;
+                // A zero target means "off" – enforce by actively driving the consumer to 0.
+                allocatedW = 0;
+                allocatedA = 0;
+                reason = ReasonCodes.SKIPPED;
+                status = 'target_zero';
+
+                if (basis !== 'none') {
+                    const res = await applySetpoint(ctx, c, { targetW: 0, targetA: 0, basis });
+                    applied = !!res?.applied;
+                    status = String(res?.status || status);
+
+                    // Map actuator status to canonical reasons
+                    if (status === 'no_setpoint_dp') reason = ReasonCodes.NO_SETPOINT;
+                    else if (status === 'control_disabled') reason = ReasonCodes.SKIPPED;
+                    else if (status === 'write_failed' || status === 'applied_partial') reason = ReasonCodes.UNKNOWN;
+                    else if (status === 'unsupported_type') reason = ReasonCodes.SKIPPED;
+
+                    if (applied) appliedCount++;
+                } else {
+                    applied = false;
+                }
             } else if (controlReason === ReasonCodes.STALE_METER) {
                 // Safety: always drive to 0 when our upstream safety signal is stale
                 allocatedW = 0;
@@ -537,6 +603,13 @@ class MultiUseModule extends BaseModule {
                 const res = await applySetpoint(ctx, c, { targetW: 0, targetA: 0, basis });
                 applied = !!res?.applied;
                 status = String(res?.status || status);
+
+                // Map low-level actuator status to canonical reasons (transparency)
+                if (status === 'no_setpoint_dp') reason = ReasonCodes.NO_SETPOINT;
+                else if (status === 'control_disabled') reason = ReasonCodes.SKIPPED;
+                else if (status === 'write_failed' || status === 'applied_partial') reason = ReasonCodes.UNKNOWN;
+                    else if (status === 'unsupported_type') reason = ReasonCodes.SKIPPED;
+
                 if (applied) appliedCount++;
             } else if (basis === 'none') {
                 reason = ReasonCodes.SKIPPED;
@@ -574,6 +647,13 @@ class MultiUseModule extends BaseModule {
                 const res = await applySetpoint(ctx, c, { targetW: allocatedW, targetA: allocatedA, basis });
                 applied = !!res?.applied;
                 status = String(res?.status || status);
+
+                // Map low-level actuator status to canonical reasons (transparency)
+                if (status === 'no_setpoint_dp') reason = ReasonCodes.NO_SETPOINT;
+                else if (status === 'control_disabled') reason = ReasonCodes.SKIPPED;
+                else if (status === 'write_failed' || status === 'applied_partial') reason = ReasonCodes.UNKNOWN;
+                    else if (status === 'unsupported_type') reason = ReasonCodes.SKIPPED;
+
                 if (applied) appliedCount++;
             }
 
@@ -606,13 +686,15 @@ class MultiUseModule extends BaseModule {
 
         const status = (this._consumers.length === 0)
             ? 'no_consumers'
-            : (appliedCount > 0 ? 'ok' : 'no_targets');
+            : ((controlReason === ReasonCodes.STALE_METER)
+                ? 'failsafe_stale_meter'
+                : (totalRequestedW > 0 ? 'ok' : 'idle'));
 
-        await this.adapter.setStateAsync('multiUse.control.active', appliedCount > 0, true);
-        await this.adapter.setStateAsync('multiUse.control.status', status, true);
-        await this.adapter.setStateAsync('multiUse.control.lastTickTs', now, true);
-        await this.adapter.setStateAsync('multiUse.summary.appliedCount', appliedCount, true);
-        await this.adapter.setStateAsync('multiUse.summary.remainingBudgetW', Math.round(Math.max(0, remainingW)), true);
+        await this._setStateIfChanged('multiUse.control.active', (totalRequestedW > 0) || (controlReason === ReasonCodes.STALE_METER));
+        await this._setStateIfChanged('multiUse.control.status', status);
+        await this._setStateIfChanged('multiUse.control.lastTickTs', now);
+        await this._setStateIfChanged('multiUse.summary.appliedCount', appliedCount);
+        await this._setStateIfChanged('multiUse.summary.remainingBudgetW', Math.round(Math.max(0, remainingW)));
 
         if (this.adapter?.log?.debug) {
             this.adapter.log.debug(`[multiUse] tick consumers=${this._consumers.length} applied=${appliedCount} status=${status} budgetW=${Math.round(budgetW)} remainingW=${Math.round(remainingW)} reason=${controlReason}`);

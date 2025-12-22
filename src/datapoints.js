@@ -238,7 +238,8 @@ class DatapointRegistry {
         // deadband in physical space against last written value
         const last = this.lastWriteByObjectId.get(e.objectId);
         if (last && Number.isFinite(last.val) && e.deadband > 0 && Math.abs(v - last.val) < e.deadband) {
-            return false;
+            // No write needed (idempotent)
+            return null;
         }
 
         try {
@@ -262,6 +263,13 @@ class DatapointRegistry {
 
         let b = !!value;
         if (e.invert) b = !b;
+
+        // idempotent: skip if unchanged (based on last written physical value)
+        const last = this.lastWriteByObjectId.get(e.objectId);
+        const phys = b ? 1 : 0;
+        if (last && typeof last.val !== 'undefined' && Number.isFinite(last.val) && Number(last.val) === phys) {
+            return null;
+        }
 
         try {
             await this.adapter.setForeignStateAsync(e.objectId, b, ack);

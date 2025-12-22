@@ -31,56 +31,82 @@ function _basis(b) {
  * @returns {Promise<{applied:boolean, status:string, writes:{setA:boolean,setW:boolean,enable:boolean}}>}
  */
 async function applyEvcsSetpoint(ctx, consumer, target) {
-    const dp = ctx?.dp;
-    const adapter = ctx?.adapter;
+    const adapter = ctx && ctx.adapter;
+    const dp = ctx && ctx.dp;
 
-    if (!dp || typeof dp.writeNumber !== 'function') {
-        return { applied: false, status: 'no_dp_registry', writes: { setA: false, setW: false, enable: false } };
+    const basis = String(target && target.basis || consumer && consumer.controlBasis || 'auto');
+    const setAKey = consumer && consumer.setAKey;
+    const setWKey = consumer && consumer.setWKey;
+    const enableKey = consumer && consumer.enableKey;
+
+    const targetA = Number(target && target.targetA);
+    const targetW = Number(target && target.targetW);
+
+    // Validate datapoints early to provide clear status
+    const hasSetA = !!(setAKey && dp && dp.getEntry && dp.getEntry(setAKey));
+    const hasSetW = !!(setWKey && dp && dp.getEntry && dp.getEntry(setWKey));
+    const hasEnable = !!(enableKey && dp && dp.getEntry && dp.getEntry(enableKey));
+
+    // Resolve basis with safe fallbacks
+    let resolvedBasis = basis;
+    if (resolvedBasis === 'auto') {
+        if (hasSetW) resolvedBasis = 'powerW';
+        else if (hasSetA) resolvedBasis = 'currentA';
+        else resolvedBasis = 'none';
     }
 
-    const setAKey = String(consumer?.setAKey || '').trim();
-    const setWKey = String(consumer?.setWKey || '').trim();
-    const enableKey = String(consumer?.enableKey || '').trim();
-
-    const basis = _basis(target?.basis || consumer?.controlBasis || 'auto');
-
-    const targetW = Number(target?.targetW || 0);
-    const targetA = Number(target?.targetA || 0);
-
-    let wroteA = false;
-    let wroteW = false;
-    let wroteEnable = false;
-
-    // Prefer requested basis, with safe fallbacks
-    if (basis === 'currentA') {
-        if (setAKey) wroteA = await dp.writeNumber(setAKey, targetA > 0 ? targetA : 0, false);
-        else if (setWKey) wroteW = await dp.writeNumber(setWKey, Math.round(targetW > 0 ? targetW : 0), false);
-        else return { applied: false, status: 'no_setpoint_dp', writes: { setA: false, setW: false, enable: false } };
-    } else if (basis === 'powerW') {
-        if (setWKey) wroteW = await dp.writeNumber(setWKey, Math.round(targetW > 0 ? targetW : 0), false);
-        else if (setAKey) wroteA = await dp.writeNumber(setAKey, targetA > 0 ? targetA : 0, false);
-        else return { applied: false, status: 'no_setpoint_dp', writes: { setA: false, setW: false, enable: false } };
-    } else if (basis === 'none') {
-        return { applied: false, status: 'control_disabled', writes: { setA: false, setW: false, enable: false } };
-    } else { // auto
-        if (setWKey) wroteW = await dp.writeNumber(setWKey, Math.round(targetW > 0 ? targetW : 0), false);
-        else if (setAKey) wroteA = await dp.writeNumber(setAKey, targetA > 0 ? targetA : 0, false);
-        else return { applied: false, status: 'no_setpoint_dp', writes: { setA: false, setW: false, enable: false } };
+    if (resolvedBasis === 'none') {
+        return { applied: false, status: 'control_disabled', writes: { setA: null, setW: null, enable: null } };
     }
 
+    if (!hasSetA && !hasSetW) {
+        return { applied: false, status: 'no_setpoint_dp', writes: { setA: null, setW: null, enable: null } };
+    }
+
+    /** @type {true|false|null} */
+    let wroteA = null;
+    /** @type {true|false|null} */
+    let wroteW = null;
+    /** @type {true|false|null} */
+    let wroteEnable = null;
+
+    // Apply setpoint
+    if (resolvedBasis === 'currentA') {
+        if (hasSetA) wroteA = await dp.writeNumber(setAKey, (targetA > 0 ? targetA : 0), false);
+        else if (hasSetW) wroteW = await dp.writeNumber(setWKey, Math.round(targetW > 0 ? targetW : 0), false);
+    } else if (resolvedBasis === 'powerW') {
+        if (hasSetW) wroteW = await dp.writeNumber(setWKey, Math.round(targetW > 0 ? targetW : 0), false);
+        else if (hasSetA) wroteA = await dp.writeNumber(setAKey, (targetA > 0 ? targetA : 0), false);
+    } else { // fallback
+        if (hasSetW) wroteW = await dp.writeNumber(setWKey, Math.round(targetW > 0 ? targetW : 0), false);
+        else if (hasSetA) wroteA = await dp.writeNumber(setAKey, (targetA > 0 ? targetA : 0), false);
+    }
+
+    // Enable/disable in tandem with target
     if (enableKey) {
-        // enable if any target is non-zero
-        const enable = (targetW > 0) || (targetA > 0);
-        wroteEnable = await dp.writeBoolean(enableKey, enable, false);
+        if (!hasEnable) {
+            wroteEnable = false;
+        } else {
+            const enable = (targetW > 0) || (targetA > 0);
+            wroteEnable = await dp.writeBoolean(enableKey, enable, false);
+        }
     }
 
-    const applied = !!(wroteA || wroteW || wroteEnable);
-    const status = applied ? 'applied' : 'write_failed';
+    const results = [wroteA, wroteW, wroteEnable].filter(v => v !== null && v !== undefined);
+    const anyFalse = results.some(v => v === false);
+    const anyTrue = results.some(v => v === true);
 
-    // Best-effort debug log (avoid spamming at info level)
-    if (adapter?.log?.debug) {
-        const k = String(consumer?.key || '');
-        adapter.log.debug(`[consumer:evcs] apply '${k}' basis=${basis} targetW=${Math.round(targetW)} targetA=${targetA} wroteW=${wroteW} wroteA=${wroteA} wroteEnable=${wroteEnable}`);
+    // applied=true means "desired state in effect" (written or idempotently unchanged)
+    const applied = !anyFalse;
+
+    let status = 'unchanged';
+    if (anyFalse && anyTrue) status = 'applied_partial';
+    else if (anyFalse) status = 'write_failed';
+    else if (anyTrue) status = 'applied';
+
+    if (adapter && adapter.log && typeof adapter.log.debug === 'function') {
+        const k = String(consumer && consumer.key || '');
+        adapter.log.debug(`[consumer:evcs] apply '${k}' basis=${resolvedBasis} targetW=${Math.round(targetW || 0)} targetA=${Number.isFinite(targetA) ? targetA.toFixed(2) : '0.00'} wroteW=${wroteW} wroteA=${wroteA} wroteEnable=${wroteEnable} status=${status}`);
     }
 
     return { applied, status, writes: { setA: wroteA, setW: wroteW, enable: wroteEnable } };

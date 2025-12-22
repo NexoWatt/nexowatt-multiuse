@@ -19,35 +19,48 @@
  * @param {{targetW:number}} target
  */
 async function applyLoadSetpoint(ctx, consumer, target) {
-    const dp = ctx?.dp;
-    const adapter = ctx?.adapter;
+    const adapter = ctx && ctx.adapter;
+    const dp = ctx && ctx.dp;
 
-    if (!dp || typeof dp.writeNumber !== 'function') {
-        return { applied: false, status: 'no_dp_registry', writes: { setW: false, enable: false } };
+    const setWKey = consumer && consumer.setWKey;
+    const enableKey = consumer && consumer.enableKey;
+    const targetW = Number(target && target.targetW);
+
+    const hasSetW = !!(setWKey && dp && dp.getEntry && dp.getEntry(setWKey));
+    const hasEnable = !!(enableKey && dp && dp.getEntry && dp.getEntry(enableKey));
+
+    if (!hasSetW) {
+        return { applied: false, status: 'no_setpoint_dp', writes: { setW: null, enable: null } };
     }
 
-    const setWKey = String(consumer?.setWKey || '').trim();
-    const enableKey = String(consumer?.enableKey || '').trim();
-    const targetW = Number(target?.targetW || 0);
-
-    let wroteW = false;
-    let wroteEnable = false;
-
-    if (!setWKey) return { applied: false, status: 'no_setpoint_dp', writes: { setW: false, enable: false } };
+    /** @type {true|false|null} */
+    let wroteW = null;
+    /** @type {true|false|null} */
+    let wroteEnable = null;
 
     wroteW = await dp.writeNumber(setWKey, Math.round(targetW > 0 ? targetW : 0), false);
 
     if (enableKey) {
-        wroteEnable = await dp.writeBoolean(enableKey, targetW > 0, false);
+        if (!hasEnable) wroteEnable = false;
+        else wroteEnable = await dp.writeBoolean(enableKey, targetW > 0, false);
     }
 
-    const applied = !!(wroteW || wroteEnable);
-    if (adapter?.log?.debug) {
-        const k = String(consumer?.key || '');
-        adapter.log.debug(`[consumer:load] apply '${k}' targetW=${Math.round(targetW)} wroteW=${wroteW} wroteEnable=${wroteEnable}`);
+    const results = [wroteW, wroteEnable].filter(v => v !== null && v !== undefined);
+    const anyFalse = results.some(v => v === false);
+    const anyTrue = results.some(v => v === true);
+    const applied = !anyFalse;
+
+    let status = 'unchanged';
+    if (anyFalse && anyTrue) status = 'applied_partial';
+    else if (anyFalse) status = 'write_failed';
+    else if (anyTrue) status = 'applied';
+
+    if (adapter && adapter.log && typeof adapter.log.debug === 'function') {
+        const k = String(consumer && consumer.key || '');
+        adapter.log.debug(`[consumer:load] apply '${k}' targetW=${Math.round(targetW || 0)} wroteW=${wroteW} wroteEnable=${wroteEnable} status=${status}`);
     }
 
-    return { applied, status: applied ? 'applied' : 'write_failed', writes: { setW: wroteW, enable: wroteEnable } };
+    return { applied, status, writes: { setW: wroteW, enable: wroteEnable } };
 }
 
 module.exports = { applyLoadSetpoint };

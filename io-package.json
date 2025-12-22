@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "nexowatt-multiuse",
-    "version": "0.0.32",
+    "version": "0.0.33",
     "news": {
       "0.0.1": {
         "en": "Initial architecture skeleton: module manager and schedulers.",

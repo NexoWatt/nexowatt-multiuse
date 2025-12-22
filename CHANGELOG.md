@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.33 (2025-12-22)
+
+* (MU7.3) Multi-Use Stabilität: idempotente Aktor-Schreiblogik (deadband => 'unchanged'), bessere Status-/Reason-Mapping, weniger State-Spam durch setStateIfChanged-Caching, Recovery durch Seed der per-Consumer Ergebnisse nach Restart.
+* (MU7.3) Multi-Use Safety: targetW/targetA = 0 wird aktiv auf 0 gefahren (Off erzwingen), damit bei Ziel=0 kein alter Setpoint stehen bleibt.
+
 ## 0.0.32 (2025-12-22)
 
 * (MU7.2) Multi-Use Budget Precedence: PeakShaving active > External limit DP > Tariff/PV/Comfort > Unlimited; deterministic allocation across consumers; publishes budget diagnostics and effective targets per consumer.
