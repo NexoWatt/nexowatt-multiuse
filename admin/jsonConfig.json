@@ -89,7 +89,6 @@
         "globalDatapoints": {
           "type": "table",
           "label": "Global datapoints (manufacturer-independent mapping)",
-          "newRow": true,
           "allowAdd": true,
           "allowDelete": true,
           "rows": 50,
@@ -392,7 +391,6 @@
         "peakShaving.actuators": {
           "type": "table",
           "label": "Actuators (controlled loads / wallboxes)",
-          "newRow": true,
           "allowAdd": true,
           "allowDelete": true,
           "rows": 50,
@@ -672,7 +670,6 @@
         "chargingManagement.wallboxes": {
           "type": "table",
           "label": "Wallboxes (manufacturer-independent mapping)",
-          "newRow": true,
           "allowAdd": true,
           "allowDelete": true,
           "rows": 50,
@@ -925,7 +922,6 @@
         "multiUse.consumers": {
           "type": "table",
           "label": "Consumers (Multi-Use)",
-          "newRow": true,
           "allowAdd": true,
           "allowDelete": true,
           "rows": 50,

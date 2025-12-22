@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.34 (2025-12-22)
+
+* (MU7.4) Admin: Fixed jsonConfig validation warnings by removing unsupported `newRow` property.
+
 ## 0.0.33 (2025-12-22)
 
 * (MU7.3) Multi-Use Stabilität: idempotente Aktor-Schreiblogik (deadband => 'unchanged'), bessere Status-/Reason-Mapping, weniger State-Spam durch setStateIfChanged-Caching, Recovery durch Seed der per-Consumer Ergebnisse nach Restart.
