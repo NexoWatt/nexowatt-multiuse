@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "nexowatt-multiuse",
-    "version": "0.0.22",
+    "version": "0.0.31",
     "news": {
       "0.0.1": {
         "en": "Initial architecture skeleton: module manager and schedulers.",
@@ -63,6 +63,14 @@
       "0.0.21": {
         "en": "Admin UI: fixed jsonConfig table rendering / schema issues.",
         "de": "Admin-UI: jsonConfig-Tabellenrendering / Schema-Probleme behoben."
+      },
+      "0.0.28": {
+        "en": "MU6.11: Charging ramp limiting + step setpoints (ramp-up only; safe ramp-down).",
+        "de": "MU6.11: Charging Ramp-Limit + Step-Setpoints (nur Ramp-Up begrenzt; Ramp-Down sicher)."
+      },
+      "0.0.29": {
+        "en": "MU6.12: Standardized reason codes (PeakShaving + ChargingManagement).",
+        "de": "MU6.12: Reason-Codes vereinheitlicht (PeakShaving + ChargingManagement)."
       }
     },
     "titleLang": {

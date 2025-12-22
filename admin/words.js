@@ -551,4 +551,149 @@ systemDictionary = {
         'en': 'If a module error occurs, diagnostics are logged/written immediately (ignores intervals).',
         'de': 'Bei Modul-Fehler werden Diagnose-Daten sofort geloggt/geschrieben (ignoriert Intervalle).'
     },
+    'Meter stale timeout (s)': {
+        'en': 'Meter stale timeout (s)',
+        'de': 'Messwert-Timeout (s)'
+    },
+    'If meter values are older than this, Peak Shaving enters failsafe (STALE_METER) and will not release.': {
+        'en': 'If meter values are older than this, Peak Shaving enters failsafe (STALE_METER) and will not release.',
+        'de': 'Wenn Messwerte älter sind als dieser Wert, geht Peak Shaving in den Failsafe (STALE_METER) und gibt nicht frei.'
+    },
+    'Safety margin (W)': {
+        'en': 'Safety margin (W)',
+        'de': 'Sicherheitsmarge (W)'
+    },
+    'Subtracts from the max power limit to keep headroom for meter delay and load spikes.': {
+        'en': 'Subtracts from the max power limit to keep headroom for meter delay and load spikes.',
+        'de': 'Wird vom Maximal-Limit abgezogen, um Reserven für Messverzögerung und Lastspitzen zu lassen.'
+    },
+    'Fast trip enabled': {
+        'en': 'Fast trip enabled',
+        'de': 'Schnellabschaltung (Fast Trip) aktiv'
+    },
+    'If enabled, Peak Shaving can activate immediately on spikes, bypassing activate delay.': {
+        'en': 'If enabled, Peak Shaving can activate immediately on spikes, bypassing activate delay.',
+        'de': 'Wenn aktiv, kann Peak Shaving bei Spitzen sofort aktivieren und die Aktivierungsverzögerung umgehen.'
+    },
+    'Fast trip mode': {
+        'en': 'Fast trip mode',
+        'de': 'Fast Trip Modus'
+    },
+    'max (window)': {
+        'en': 'max (window)',
+        'de': 'max (Fenster)'
+    },
+    'raw (current)': {
+        'en': 'raw (current)',
+        'de': 'raw (aktuell)'
+    },
+    'Select spike detector: max of recent window or current raw value.': {
+        'en': 'Select spike detector: max of recent window or current raw value.',
+        'de': 'Spitzen-Erkennung: Maximum im Zeitfenster oder aktueller Rohwert.'
+    },
+    'Pause behavior': {
+        'en': 'Pause behavior',
+        'de': 'Pause-Verhalten'
+    },
+    'rampDownToZero': {
+        'en': 'rampDownToZero',
+        'de': 'auf 0 abregeln'
+    },
+    'followPeakBudget': {
+        'en': 'followPeakBudget',
+        'de': 'Peak-Budget folgen'
+    },
+    'When paused by Peak Shaving: ramp down to 0 (safest) or follow Peak Shaving available budget.': {
+        'en': 'When paused by Peak Shaving: ramp down to 0 (safest) or follow Peak Shaving available budget.',
+        'de': 'Bei Pause durch Peak Shaving: auf 0 abregeln (am sichersten) oder dem verfügbaren Peak-Shaving-Budget folgen.'
+    },
+    'If meter/budget values are older than this, Charging Management forces safe targets (STALE_METER).': {
+        'en': 'If meter/budget values are older than this, Charging Management forces safe targets (STALE_METER).',
+        'de': 'Wenn Mess-/Budgetwerte älter sind als dieser Wert, erzwingt Charging Management sichere Setpoints (STALE_METER).'
+    },
+    'Max delta per tick (W)': {
+        'en': 'Max delta per tick (W)',
+        'de': 'Max. Änderung pro Tick (W)'
+    },
+    'Limits ramp-up per control cycle. Ramp-down is always immediate for safety.': {
+        'en': 'Limits ramp-up per control cycle. Ramp-down is always immediate for safety.',
+        'de': 'Begrenzt den Ramp-Up pro Regelzyklus. Ramp-Down erfolgt aus Sicherheitsgründen immer sofort.'
+    },
+    'Max delta per tick (A)': {
+        'en': 'Max delta per tick (A)',
+        'de': 'Max. Änderung pro Tick (A)'
+    },
+    'Limits ramp-up per control cycle in amperes. Ramp-down is always immediate for safety.': {
+        'en': 'Limits ramp-up per control cycle in amperes. Ramp-down is always immediate for safety.',
+        'de': 'Begrenzt den Ramp-Up pro Regelzyklus in Ampere. Ramp-Down erfolgt aus Sicherheitsgründen immer sofort.'
+    },
+    'Step (W)': {
+        'en': 'Step (W)',
+        'de': 'Schrittweite (W)'
+    },
+    'Quantize setpoints to this step size (rounded down). Set 0 to disable.': {
+        'en': 'Quantize setpoints to this step size (rounded down). Set 0 to disable.',
+        'de': 'Quantisiert Setpoints auf diese Schrittweite (abgerundet). 0 deaktiviert.'
+    },
+    'Step (A)': {
+        'en': 'Step (A)',
+        'de': 'Schrittweite (A)'
+    },
+    'Quantize current setpoints to this step size (rounded down). Set 0 to disable.': {
+        'en': 'Quantize current setpoints to this step size (rounded down). Set 0 to disable.',
+        'de': 'Quantisiert Strom-Setpoints auf diese Schrittweite (abgerundet). 0 deaktiviert.'
+    },
+    'Consumers (Multi-Use)': {
+        'en': "Consumers (Multi-Use)",
+        'de': "Verbraucher (Multi-Use)"
+    },
+    'Priority': {
+        'en': "Priority",
+        'de': "Priorität"
+    },
+    'Setpoint (A) DP-Key': {
+        'en': "Setpoint (A) DP-Key",
+        'de': "Sollwert (A) DP-Key"
+    },
+    'Setpoint (W) DP-Key': {
+        'en': "Setpoint (W) DP-Key",
+        'de': "Sollwert (W) DP-Key"
+    },
+    'Enable DP-Key': {
+        'en': "Enable DP-Key",
+        'de': "Freigabe DP-Key"
+    },
+    'Default target (A)': {
+        'en': "Default target (A)",
+        'de': "Standardziel (A)"
+    },
+    'Default target (W)': {
+        'en': "Default target (W)",
+        'de': "Standardziel (W)"
+    },
+    'Auto': {
+        'en': "Auto",
+        'de': "Auto"
+    },
+    'Current (A)': {
+        'en': "Current (A)",
+        'de': "Strom (A)"
+    },
+    'Power (W)': {
+        'en': "Power (W)",
+        'de': "Leistung (W)"
+    },
+    'None': {
+        'en': "None",
+        'de': "Keine"
+    },
+    'EVCS': {
+        'en': "EVCS",
+        'de': "Wallbox"
+    },
+    'Load': {
+        'en': "Load",
+        'de': "Verbraucher"
+    },
+
 };

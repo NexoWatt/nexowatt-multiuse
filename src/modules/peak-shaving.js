@@ -1,6 +1,7 @@
 'use strict';
 
 const { BaseModule } = require('./base');
+const { ReasonCodes } = require('../reasons');
 
 class SlidingWindow {
     constructor(maxSeconds) {
@@ -35,6 +36,15 @@ class SlidingWindow {
         let sum = 0;
         for (const s of this.samples) sum += s.v;
         return sum / this.samples.length;
+    }
+
+    max() {
+        if (!this.samples.length) return null;
+        let m = Number.NEGATIVE_INFINITY;
+        for (const s of this.samples) {
+            if (s.v > m) m = s.v;
+        }
+        return Number.isFinite(m) ? m : null;
     }
 
     count() {
@@ -144,6 +154,10 @@ class PeakShavingModule extends BaseModule {
         const activateDelayS = clamp(num(cfg.activateDelaySeconds, 2), 0, 3600);
         const releaseDelayS = clamp(num(cfg.releaseDelaySeconds, 5), 0, 3600);
 
+        const safetyMarginW = clamp(num(cfg.safetyMarginW, 0), 0, 1e9);
+        const fastTripEnabled = cfg.fastTripEnabled !== false; // default true
+        const fastTripMode = String(cfg.fastTripMode || 'max'); // max|raw
+
         const maxPhaseA = num(cfg.maxPhaseA, 0);
         const phaseMode = String(cfg.phaseMode || (maxPhaseA > 0 ? 'enforce' : 'off')); // off|info|enforce
         const hysteresisA = clamp(num(cfg.hysteresisA, 1), 0, 100);
@@ -169,6 +183,33 @@ class PeakShavingModule extends BaseModule {
         if (cfg.l2CurrentId) await this.dp.upsert({ key: 'ps.l2A', objectId: cfg.l2CurrentId, dataType: 'number', direction: 'in', unit: 'A' });
         if (cfg.l3CurrentId) await this.dp.upsert({ key: 'ps.l3A', objectId: cfg.l3CurrentId, dataType: 'number', direction: 'in', unit: 'A' });
 
+        // MU6.7: stale meter failsafe (protect against missing/old grid measurements)
+        const staleTimeoutSec = clamp(num(cfg.staleTimeoutSec, 15), 1, 3600);
+        const staleMaxAgeMs = staleTimeoutSec * 1000;
+        const wantsPowerLimit = typeof maxPowerW === 'number' && maxPowerW > 0;
+        const wantsPhaseLimit = (phaseMode === 'info' || phaseMode === 'enforce') && typeof maxPhaseA === 'number' && maxPhaseA > 0;
+        let staleMeter = false;
+        const staleKeys = [];
+        if (wantsPowerLimit || wantsPhaseLimit) {
+            // Grid power is the primary safety signal
+            if (wantsPowerLimit) {
+                if (!this.dp.getEntry('ps.gridPowerW')) staleKeys.push('ps.gridPowerW');
+                else if (this.dp.isStale('ps.gridPowerW', staleMaxAgeMs)) staleKeys.push('ps.gridPowerW');
+            }
+            if (wantsPhaseLimit) {
+                const phaseKeys = ['ps.l1A', 'ps.l2A', 'ps.l3A'];
+                const anyPhaseConfigured = phaseKeys.some(k => !!this.dp.getEntry(k));
+                if (!anyPhaseConfigured && !wantsPowerLimit && phaseMode === 'enforce') {
+                    staleKeys.push('ps.l1A/ps.l2A/ps.l3A');
+                } else {
+                    for (const k of phaseKeys) {
+                        if (this.dp.getEntry(k) && this.dp.isStale(k, staleMaxAgeMs)) staleKeys.push(k);
+                    }
+                }
+            }
+            staleMeter = staleKeys.length > 0;
+        }
+
         // Measurements
         const gridPowerRaw = this.dp.getNumber('ps.gridPowerW', null);
         const l1Raw = this.dp.getNumber('ps.l1A', null);
@@ -187,7 +228,20 @@ class PeakShavingModule extends BaseModule {
         if (typeof l3Raw === 'number') this._winL3.push(l3Raw, now);
 
         const avgPower = this._winPower.mean();
+        const maxPower = this._winPower.max();
         const effPower = useAverage && typeof avgPower === 'number' ? avgPower : gridPowerRaw;
+
+        // MU6.9: FastTrip path (react to spikes without losing smoothing for steady-state)
+        let tripPower = null;
+        if (fastTripEnabled) {
+            if (fastTripMode === 'max') {
+                tripPower = (typeof maxPower === 'number') ? maxPower : gridPowerRaw;
+            } else if (fastTripMode === 'raw') {
+                tripPower = gridPowerRaw;
+            } else {
+                tripPower = gridPowerRaw;
+            }
+        }
 
         const samples = this._winPower.count();
         await this.adapter.setStateAsync('peakShaving.calc.avgPowerW', typeof avgPower === 'number' ? avgPower : 0, true);
@@ -206,6 +260,11 @@ class PeakShavingModule extends BaseModule {
             if (!Number.isFinite(limitW)) limitW = 0;
         } else {
             limitW = (typeof maxPowerW === 'number' && maxPowerW > 0) ? maxPowerW : 0;
+        }
+
+        // MU6.9: Safety margin (keep headroom to avoid overload due to latency/noise)
+        if (typeof limitW === 'number' && limitW > 0) {
+            limitW = Math.max(0, limitW - Math.max(0, safetyMarginW));
         }
 
         // Phase analysis
@@ -237,8 +296,11 @@ class PeakShavingModule extends BaseModule {
         const requiredReductionWPhase3p = phaseViolation ? requiredReductionA * voltageV * 3 : 0;
 
         // Power violation
-        const overW = (typeof effPower === 'number' && limitW > 0) ? (effPower - limitW) : 0;
+        const overWAvg = (typeof effPower === 'number' && limitW > 0) ? (effPower - limitW) : 0;
+        const overWTrip = (fastTripEnabled && typeof tripPower === 'number' && limitW > 0) ? (tripPower - limitW) : 0;
+        const overW = Math.max(0, overWAvg, overWTrip);
         const powerViolation = overW > 0;
+        const fastTripViolation = overWTrip > 0;
 
         // Determine whether we consider phase for activation
         const considerPhase = phaseMode === 'info' || phaseMode === 'enforce';
@@ -246,25 +308,26 @@ class PeakShavingModule extends BaseModule {
 
         const hasPowerLimit = limitW > 0;
         const violationNow =
+            staleMeter ||
             (hasPowerLimit && powerViolation) ||
             (considerPhase && phaseViolation && (hasPowerLimit || canActivateFromPhaseOnly));
 
         // Determine requested reduction (W)
         const reqFromPower = powerViolation ? overW : 0;
         const reqFromPhase = (considerPhase && phaseViolation) ? requiredReductionWPhase3p : 0;
-        const requiredReductionW = Math.max(0, reqFromPower, reqFromPhase);
+        const requiredReductionW = staleMeter ? 1000000000 : Math.max(0, reqFromPower, reqFromPhase);
 
         // State machine with delays/hysteresis
         const underPowerRelease = !hasPowerLimit ? true : (typeof effPower === 'number' ? effPower <= (limitW - hysteresisW) : true);
         const underPhaseRelease = !considerPhase ? true : (phaseViolation ? false : true); // if no violation, ok
-        const releaseConditionNow = underPowerRelease && underPhaseRelease;
+        const releaseConditionNow = !staleMeter && !fastTripViolation && underPowerRelease && underPhaseRelease;
 
         let status = this._status;
         let active = status === 'active';
 
         if (status === 'inactive') {
             if (violationNow) {
-                status = activateDelayS > 0 ? 'pending_on' : 'active';
+                status = fastTripViolation ? 'active' : (activateDelayS > 0 ? 'pending_on' : 'active');
                 this._pendingSince = now;
                 if (status === 'active') this._activeSince = now;
             }
@@ -272,6 +335,10 @@ class PeakShavingModule extends BaseModule {
             if (!violationNow) {
                 status = 'inactive';
                 this._pendingSince = 0;
+            } else if (fastTripViolation) {
+                status = 'active';
+                this._pendingSince = 0;
+                this._activeSince = now;
             } else if ((now - this._pendingSince) >= activateDelayS * 1000) {
                 status = 'active';
                 this._activeSince = now;
@@ -292,16 +359,32 @@ class PeakShavingModule extends BaseModule {
             }
         }
 
+
+        // MU6.9: fast trip => force immediate active (bypass activate delay)
+        if (fastTripViolation) {
+            status = 'active';
+            this._pendingSince = 0;
+            this._activeSince = now;
+        }
+
+        // MU6.7: stale meter => force immediate active (bypass delays)
+        if (staleMeter) {
+            status = 'active';
+            this._pendingSince = 0;
+            if (!this._activeSince) this._activeSince = now;
+        }
         this._status = status;
         active = status === 'active';
 
-        // Reason
-        let reason = 'ok';
-        if (active || status.startsWith('pending')) {
-            if (powerViolation && phaseViolation && considerPhase) reason = 'power_and_phase';
-            else if (powerViolation) reason = 'power';
-            else if (phaseViolation && considerPhase) reason = 'phase';
-            else reason = 'unknown';
+        // Reason (MU6.12): standardized reason codes
+        let reason = ReasonCodes.OK;
+        if (staleMeter) {
+            reason = ReasonCodes.STALE_METER;
+        } else if (active || status.startsWith('pending')) {
+            if (powerViolation && phaseViolation && considerPhase) reason = ReasonCodes.LIMIT_POWER_AND_PHASE;
+            else if (powerViolation) reason = ReasonCodes.LIMIT_POWER;
+            else if (phaseViolation && considerPhase) reason = ReasonCodes.LIMIT_PHASE;
+            else reason = ReasonCodes.UNKNOWN;
         }
 
         // Dynamic diagnostics
@@ -370,7 +453,7 @@ class PeakShavingModule extends BaseModule {
             const lvl = (diagCfg.logLevel === 'info' || diagCfg.logLevel === 'debug') ? diagCfg.logLevel : 'debug';
             const fn = (this.adapter && this.adapter.log && typeof this.adapter.log[lvl] === 'function') ? this.adapter.log[lvl] : this.adapter.log.debug;
             try {
-                fn.call(this.adapter.log, `[PS] mode=${mode} active=${active} limit=${Math.round(Number(limitW || 0))}W eff=${Math.round(Number(effPower || 0))}W over=${Math.round(Number(overW || 0))}W availCtl=${Math.round(Number(availableForControlledW || 0))}W reqRed=${Math.round(Number(requiredReductionW || 0))}W`);
+                fn.call(this.adapter.log, `[PS] mode=${mode} active=${active} status=${status} reason=${reason} stale=${staleMeter ? 1 : 0} fastTrip=${fastTripViolation ? 1 : 0} margin=${Math.round(Number(safetyMarginW || 0))}W lim=${Math.round(Number(limitW || 0))}W raw=${Math.round(Number(gridPowerRaw || 0))}W avg=${Math.round(Number(avgPower || 0))}W trip=${Math.round(Number(tripPower || 0))}W eff=${Math.round(Number(effPower || 0))}W over=${Math.round(Number(overW || 0))}W availCtl=${Math.round(Number(availableForControlledW || 0))}W reqRed=${Math.round(Number(requiredReductionW || 0))}W`);
             } catch {
                 // ignore
             }

@@ -2,6 +2,7 @@
 
 const { BaseModule } = require('./base');
 const { applySetpoint } = require('../consumers');
+const { ReasonCodes } = require('../reasons');
 
 function toSafeIdPart(input) {
     const s = String(input || '').trim();
@@ -19,6 +20,32 @@ function clamp(n, min, max) {
     if (Number.isFinite(min)) n = Math.max(min, n);
     if (Number.isFinite(max)) n = Math.min(max, n);
     return n;
+}
+
+function floorToStep(value, step) {
+    const v = Number(value);
+    const s = Number(step);
+    if (!Number.isFinite(v)) return value;
+    if (!Number.isFinite(s) || s <= 0) return v;
+    // Always round DOWN to avoid budget overshoot / limit violations
+    return Math.floor(v / s) * s;
+}
+
+function rampUp(prevValue, targetValue, maxDeltaUp) {
+    const t = Number(targetValue);
+    const p = Number(prevValue);
+    const d = Number(maxDeltaUp);
+    if (!Number.isFinite(t)) return targetValue;
+    if (!Number.isFinite(d) || d <= 0) return t;
+    if (!Number.isFinite(p)) return t;
+    if (t <= p) return t; // never limit ramp-down (safety)
+    return (t > (p + d)) ? (p + d) : t;
+}
+
+function availabilityReason(enabled, online) {
+    if (!enabled) return ReasonCodes.DISABLED;
+    if (!online) return ReasonCodes.OFFLINE;
+    return ReasonCodes.SKIPPED;
 }
 
 function normalizeChargerType(v) {
@@ -40,6 +67,8 @@ class ChargingManagementModule extends BaseModule {
         this._chargingSinceMs = new Map(); // safeKey -> ms since epoch
         this._chargingLastActiveMs = new Map(); // safeKey -> ms of last detected activity
         this._chargingLastSeenMs = new Map(); // safeKey -> ms of last processing (cleanup)
+        this._lastCmdTargetW = new Map(); // safeKey -> last commanded target power (for ramp limiting)
+        this._lastCmdTargetA = new Map(); // safeKey -> last commanded target current (for ramp limiting)
         this._lastDiagLogMs = 0; // MU6.2: rate limit diagnostics log
     }
 
@@ -203,6 +232,17 @@ class ChargingManagementModule extends BaseModule {
         const staticBudgetW = clamp(num(cfg.staticMaxChargingPowerW, 0), 0, 1e12);
         const budgetPowerId = String(cfg.budgetPowerId || '').trim();
         const pauseWhenPeakShavingActive = cfg.pauseWhenPeakShavingActive !== false; // default true
+        const pauseBehavior = String(cfg.pauseBehavior || 'rampDownToZero'); // rampDownToZero | followPeakBudget
+
+        // MU6.8: stale detection (failsafe)
+        const staleTimeoutSec = clamp(num(cfg.staleTimeoutSec, 15), 1, 3600);
+        const staleTimeoutMs = staleTimeoutSec * 1000;
+
+        // MU6.11: ramp limiting + setpoint step (anti-flutter, but keep safety by never limiting ramp-down)
+        const maxDeltaWPerTick = clamp(num(cfg.maxDeltaWPerTick, 0), 0, 1e12); // 0 = unlimited
+        const maxDeltaAPerTick = clamp(num(cfg.maxDeltaAPerTick, 0), 0, 1e6); // 0 = unlimited
+        const stepW = clamp(num(cfg.stepW, 0), 0, 1e12); // 0 = no stepping
+        const stepA = clamp(num(cfg.stepA, 0.1), 0, 1e6); // 0 = no stepping
 
         if (budgetPowerId && this.dp) {
             await this.dp.upsert({ key: 'cm.budgetPowerW', objectId: budgetPowerId, dataType: 'number', direction: 'in', unit: 'W' });
@@ -474,13 +514,31 @@ class ChargingManagementModule extends BaseModule {
         const getFirstDpNumber = (keys) => {
             if (!this.dp) return null;
             for (const k of keys) {
-                const v = this.dp.getNumber(k, null);
+                const v = (typeof this.dp.getNumberFresh === 'function') ? this.dp.getNumberFresh(k, staleTimeoutMs, null) : this.dp.getNumber(k, null);
                 if (typeof v === 'number' && Number.isFinite(v)) return v;
             }
             return null;
         };
 
-        if (budgetMode === 'engine') {
+        
+        /**
+         * MU6.8: ioBroker state staleness helper (uses state.ts / state.lc).
+         * @param {string} id
+         * @param {number} maxAgeMs
+         * @returns {Promise<boolean>}
+         */
+        const isStateStale = async (id, maxAgeMs) => {
+            try {
+                const st = await this.adapter.getStateAsync(id);
+                const ts = st && (typeof st.ts === 'number' ? st.ts : (typeof st.lc === 'number' ? st.lc : 0));
+                if (!ts) return true;
+                return (Date.now() - ts) > maxAgeMs;
+            } catch {
+                return true;
+            }
+        };
+
+if (budgetMode === 'engine') {
             /** @type {Array<{k:string, w:number}>} */
             const components = [];
 
@@ -557,13 +615,164 @@ class ChargingManagementModule extends BaseModule {
         }
 
         const peakActive = await this._getPeakShavingActive();
-        const paused = pauseWhenPeakShavingActive && peakActive;
+        const pausedByPeakShaving = pauseWhenPeakShavingActive && peakActive;
+        let pauseFollowPeakBudget = false;
 
-        const controlActive = mode !== 'off' && !paused;
+        // MU6.8: If metering/budget inputs are stale, enforce safe targets (0) to avoid overloading the grid connection.
+        let staleMeter = false;
+        let staleBudget = false;
+
+        if (!this.dp) {
+            staleMeter = true; // cannot validate inputs without DP registry
+        } else {
+            const gridKeys = ['cm.gridPowerW', 'ps.gridPowerW'];
+            const configuredGridKeys = gridKeys.filter(k => !!this.dp.getEntry(k));
+
+            // Grid metering is required for safe operation
+            if (configuredGridKeys.length === 0) {
+                staleMeter = true;
+            } else {
+                for (const k of configuredGridKeys) {
+                    if (this.dp.isStale(k, staleTimeoutMs)) {
+                        staleMeter = true;
+                        break;
+                    }
+                }
+            }
+
+            // External budget datapoint (if used)
+            if (!staleMeter && (budgetMode === 'fromDatapoint' || budgetMode === 'engine') && budgetPowerId && this.dp.getEntry('cm.budgetPowerW')) {
+                staleBudget = this.dp.isStale('cm.budgetPowerW', staleTimeoutMs);
+            }
+        }
+
+        // Peak-shaving-derived budget is an ioBroker state; check ts/lc (if used)
+        if (!staleMeter && !staleBudget && (budgetMode === 'fromPeakShaving' || budgetMode === 'engine')) {
+            const psBudgetStale = await isStateStale('peakShaving.dynamic.availableForControlledW', staleTimeoutMs);
+            // Only treat as relevant if peak shaving is active or the user explicitly uses fromPeakShaving.
+            const psActive = peakActive;
+            if (budgetMode === 'fromPeakShaving' || psActive) staleBudget = !!psBudgetStale;
+        }
+
+        const staleRelevant = (mode !== 'off') && (staleMeter || staleBudget);
+
+        if (staleRelevant) {
+            const reason = ReasonCodes.STALE_METER;
+
+            await this.adapter.setStateAsync('chargingManagement.control.active', true, true);
+            await this.adapter.setStateAsync('chargingManagement.control.mode', mode, true);
+            await this.adapter.setStateAsync('chargingManagement.control.budgetMode', effectiveBudgetMode, true);
+            await this.adapter.setStateAsync('chargingManagement.control.pausedByPeakShaving', false, true);
+            await this.adapter.setStateAsync('chargingManagement.control.status', 'failsafe_stale_meter', true);
+            await this.adapter.setStateAsync('chargingManagement.control.budgetW', 0, true);
+            await this.adapter.setStateAsync('chargingManagement.control.usedW', 0, true);
+            await this.adapter.setStateAsync('chargingManagement.control.remainingW', 0, true);
+
+            await this.adapter.setStateAsync('chargingManagement.debug.sortedOrder', wbList.map(w => w.safe).join(','), true);
+
+            /** @type {any[]} */
+            const debugAlloc = [];
+            let totalTargetPowerW = 0;
+            let totalTargetCurrentA = 0;
+
+            for (const w of wbList) {
+                const targetW = 0;
+                const targetA = 0;
+
+                let applied = false;
+                let applyStatus = 'skipped';
+                /** @type {any|null} */
+                let applyWrites = null;
+
+                if (w.enabled && w.online) {
+                    if (this.dp) {
+                        const consumer = w.consumer || {
+                            type: 'evcs',
+                            key: w.safe,
+                            name: w.name,
+                            controlBasis: w.controlBasis,
+                            setAKey: w.setAKey || '',
+                            setWKey: w.setWKey || '',
+                            enableKey: w.enableKey || '',
+                        };
+
+                        const res = await applySetpoint({ adapter: this.adapter, dp: this.dp }, consumer, { targetW, targetA, basis: w.controlBasis });
+                        applied = !!res?.applied;
+                        applyStatus = String(res?.status || (applied ? 'applied' : 'write_failed'));
+                        applyWrites = res?.writes || null;
+                    } else {
+                        applyStatus = 'no_dp_registry';
+                    }
+
+                    await this.adapter.setStateAsync(`${w.ch}.reason`, reason, true);
+                } else {
+                    await this.adapter.setStateAsync(`${w.ch}.reason`, availabilityReason(!!w.enabled, !!w.online), true);
+                }
+
+                await this.adapter.setStateAsync(`${w.ch}.targetCurrentA`, 0, true);
+                await this.adapter.setStateAsync(`${w.ch}.targetPowerW`, 0, true);
+                await this.adapter.setStateAsync(`${w.ch}.applied`, applied, true);
+                await this.adapter.setStateAsync(`${w.ch}.applyStatus`, applyStatus, true);
+                if (applyWrites) {
+                    try {
+                        await this.adapter.setStateAsync(`${w.ch}.applyWrites`, JSON.stringify(applyWrites), true);
+                    } catch {
+                        await this.adapter.setStateAsync(`${w.ch}.applyWrites`, '{}', true);
+                    }
+                } else {
+                    await this.adapter.setStateAsync(`${w.ch}.applyWrites`, '{}', true);
+                }
+
+                debugAlloc.push({
+                    safe: w.safe,
+                    name: w.name,
+                    charging: !!w.charging,
+                    chargingSinceMs: w.chargingSinceMs || 0,
+                    online: !!w.online,
+                    enabled: !!w.enabled,
+                    priority: w.priority,
+                    controlBasis: w.controlBasis,
+                    chargerType: w.chargerType,
+                    targetW,
+                    targetA,
+                    applied,
+                    applyStatus,
+                    applyWrites,
+                    reason: (w.enabled && w.online) ? reason : availabilityReason(!!w.enabled, !!w.online),
+                });
+            }
+
+            await this.adapter.setStateAsync('chargingManagement.summary.totalTargetPowerW', totalTargetPowerW, true);
+            await this.adapter.setStateAsync('chargingManagement.summary.totalTargetCurrentA', totalTargetCurrentA, true);
+            await this.adapter.setStateAsync('chargingManagement.summary.lastUpdate', Date.now(), true);
+
+            try {
+                const s = JSON.stringify(debugAlloc);
+                await this.adapter.setStateAsync('chargingManagement.debug.allocations', s, true);
+            } catch {
+                await this.adapter.setStateAsync('chargingManagement.debug.allocations', '[]', true);
+            }
+
+            // Cleanup session tracking for removed wallboxes (avoid memory leaks)
+            for (const [safeKey, lastSeenTs] of this._chargingLastSeenMs.entries()) {
+                const ls = (typeof lastSeenTs === 'number' && Number.isFinite(lastSeenTs)) ? lastSeenTs : 0;
+                if (!ls || (now - ls) > sessionCleanupStaleMs) {
+                    this._chargingLastSeenMs.delete(safeKey);
+                    this._chargingLastActiveMs.delete(safeKey);
+                    this._chargingSinceMs.delete(safeKey);
+                    this._lastCmdTargetW.delete(safeKey);
+                    this._lastCmdTargetA.delete(safeKey);
+                }
+            }
+
+            return;
+        }
+
+        const controlActive = mode !== 'off';
         await this.adapter.setStateAsync('chargingManagement.control.active', controlActive, true);
         await this.adapter.setStateAsync('chargingManagement.control.mode', mode, true);
         await this.adapter.setStateAsync('chargingManagement.control.budgetMode', effectiveBudgetMode, true);
-        await this.adapter.setStateAsync('chargingManagement.control.pausedByPeakShaving', paused, true);
+        await this.adapter.setStateAsync('chargingManagement.control.pausedByPeakShaving', pausedByPeakShaving, true);
 
         if (mode === 'off') {
             await this.adapter.setStateAsync('chargingManagement.control.status', 'off', true);
@@ -577,6 +786,8 @@ class ChargingManagementModule extends BaseModule {
                     this._chargingLastSeenMs.delete(safeKey);
                     this._chargingLastActiveMs.delete(safeKey);
                     this._chargingSinceMs.delete(safeKey);
+                    this._lastCmdTargetW.delete(safeKey);
+                    this._lastCmdTargetA.delete(safeKey);
                 }
             }
 
@@ -586,25 +797,132 @@ class ChargingManagementModule extends BaseModule {
             return;
         }
 
-        if (paused) {
-            await this.adapter.setStateAsync('chargingManagement.control.status', 'paused_by_peak_shaving', true);
-            await this.adapter.setStateAsync('chargingManagement.control.budgetW', Number.isFinite(budgetW) ? budgetW : 0, true);
-            await this.adapter.setStateAsync('chargingManagement.control.usedW', 0, true);
-            await this.adapter.setStateAsync('chargingManagement.control.remainingW', Number.isFinite(budgetW) ? budgetW : 0, true);
-            // Cleanup session tracking for removed wallboxes (avoid memory leaks)
-            for (const [safeKey, lastSeenTs] of this._chargingLastSeenMs.entries()) {
-                const ls = (typeof lastSeenTs === 'number' && Number.isFinite(lastSeenTs)) ? lastSeenTs : 0;
-                if (!ls || (now - ls) > sessionCleanupStaleMs) {
-                    this._chargingLastSeenMs.delete(safeKey);
-                    this._chargingLastActiveMs.delete(safeKey);
-                    this._chargingSinceMs.delete(safeKey);
+        if (pausedByPeakShaving) {
+            const pb = (pauseBehavior === 'followPeakBudget') ? 'followPeakBudget' : 'rampDownToZero';
+
+            if (pb === 'followPeakBudget') {
+                const psBudgetStale = await isStateStale('peakShaving.dynamic.availableForControlledW', staleTimeoutMs);
+                const psBudgetRaw = await this._getPeakShavingBudgetW();
+                const psBudgetW = (!psBudgetStale && typeof psBudgetRaw === 'number' && Number.isFinite(psBudgetRaw)) ? Math.max(0, psBudgetRaw) : null;
+
+                if (psBudgetW !== null) {
+                    budgetW = psBudgetW;
+                    effectiveBudgetMode = 'fromPeakShaving';
+                    // Ensure control state reflects the effective mode (overrides earlier value)
+                    await this.adapter.setStateAsync('chargingManagement.control.budgetMode', effectiveBudgetMode, true);
+                    pauseFollowPeakBudget = true;
                 }
             }
 
-            await this.adapter.setStateAsync('chargingManagement.summary.totalTargetPowerW', 0, true);
-            await this.adapter.setStateAsync('chargingManagement.summary.totalTargetCurrentA', 0, true);
-            await this.adapter.setStateAsync('chargingManagement.summary.lastUpdate', Date.now(), true);
-            return;
+            // Default / safe pause behavior: ramp down to 0 (do not keep last setpoints)
+            if (!pauseFollowPeakBudget) {
+                const reason = ReasonCodes.PAUSED_BY_PEAK_SHAVING;
+
+                await this.adapter.setStateAsync('chargingManagement.control.active', true, true);
+                await this.adapter.setStateAsync('chargingManagement.control.mode', mode, true);
+                await this.adapter.setStateAsync('chargingManagement.control.budgetMode', effectiveBudgetMode, true);
+                await this.adapter.setStateAsync('chargingManagement.control.pausedByPeakShaving', true, true);
+                await this.adapter.setStateAsync('chargingManagement.control.status', 'paused_by_peak_shaving_ramp_down', true);
+                await this.adapter.setStateAsync('chargingManagement.control.budgetW', 0, true);
+                await this.adapter.setStateAsync('chargingManagement.control.usedW', 0, true);
+                await this.adapter.setStateAsync('chargingManagement.control.remainingW', 0, true);
+
+                await this.adapter.setStateAsync('chargingManagement.debug.sortedOrder', wbList.map(w => w.safe).join(','), true);
+
+                /** @type {any[]} */
+                const debugAlloc = [];
+                let totalTargetPowerW = 0;
+                let totalTargetCurrentA = 0;
+
+                for (const w of wbList) {
+                    const targetW = 0;
+                    const targetA = 0;
+
+                    let applied = false;
+                    let applyStatus = 'skipped';
+                    /** @type {any|null} */
+                    let applyWrites = null;
+
+                    if (w.enabled && w.online) {
+                        if (this.dp) {
+                            const consumer = w.consumer || {
+                                type: 'evcs',
+                                key: w.safe,
+                                name: w.name,
+                                controlBasis: w.controlBasis,
+                                setAKey: w.setAKey || '',
+                                setWKey: w.setWKey || '',
+                                enableKey: w.enableKey || '',
+                            };
+
+                            const res = await applySetpoint({ adapter: this.adapter, dp: this.dp }, consumer, { targetW, targetA, basis: w.controlBasis });
+                            applied = !!res?.applied;
+                            applyStatus = String(res?.status || (applied ? 'applied' : 'write_failed'));
+                            applyWrites = res?.writes || null;
+                        } else {
+                            applyStatus = 'no_dp_registry';
+                        }
+
+                        await this.adapter.setStateAsync(`${w.ch}.reason`, reason, true);
+                    } else {
+                        await this.adapter.setStateAsync(`${w.ch}.reason`, availabilityReason(!!w.enabled, !!w.online), true);
+                    }
+
+                    await this.adapter.setStateAsync(`${w.ch}.targetCurrentA`, 0, true);
+                    await this.adapter.setStateAsync(`${w.ch}.targetPowerW`, 0, true);
+                    await this.adapter.setStateAsync(`${w.ch}.applied`, applied, true);
+                    await this.adapter.setStateAsync(`${w.ch}.applyStatus`, applyStatus, true);
+                    if (applyWrites) {
+                        try {
+                            await this.adapter.setStateAsync(`${w.ch}.applyWrites`, JSON.stringify(applyWrites), true);
+                        } catch {
+                            await this.adapter.setStateAsync(`${w.ch}.applyWrites`, '{}', true);
+                        }
+                    } else {
+                        await this.adapter.setStateAsync(`${w.ch}.applyWrites`, '{}', true);
+                    }
+
+                    debugAlloc.push({
+                        safe: w.safe,
+                        name: w.name,
+                        charging: !!w.charging,
+                        chargingSinceMs: w.chargingSinceMs || 0,
+                        online: !!w.online,
+                        enabled: !!w.enabled,
+                        targetW,
+                        targetA,
+                        applied,
+                        status: applyStatus,
+                        reason: (w.enabled && w.online) ? reason : availabilityReason(!!w.enabled, !!w.online),
+                    });
+
+                    // totals stay 0
+                    totalTargetPowerW += targetW;
+                    if (Number.isFinite(targetA) && targetA > 0) totalTargetCurrentA += targetA;
+                }
+
+                try {
+                    const s = JSON.stringify(debugAlloc);
+                    await this.adapter.setStateAsync('chargingManagement.debug.allocations', diagMaxJsonLen ? (s.slice(0, diagMaxJsonLen) + '...') : s, true);
+                } catch {
+                    await this.adapter.setStateAsync('chargingManagement.debug.allocations', '[]', true);
+                }
+
+                // Cleanup session tracking for removed wallboxes (avoid memory leaks)
+                for (const [safeKey, lastSeenTs] of this._chargingLastSeenMs.entries()) {
+                    const ls = (typeof lastSeenTs === 'number' && Number.isFinite(lastSeenTs)) ? lastSeenTs : 0;
+                    if (!ls || (now - ls) > sessionCleanupStaleMs) {
+                        this._chargingLastSeenMs.delete(safeKey);
+                        this._chargingLastActiveMs.delete(safeKey);
+                        this._chargingSinceMs.delete(safeKey);
+                    }
+                }
+
+                await this.adapter.setStateAsync('chargingManagement.summary.totalTargetPowerW', 0, true);
+                await this.adapter.setStateAsync('chargingManagement.summary.totalTargetCurrentA', 0, true);
+                await this.adapter.setStateAsync('chargingManagement.summary.lastUpdate', Date.now(), true);
+                return;
+            }
         }
 
         // Priority distribution in W across mixed AC/DC chargers
@@ -658,29 +976,29 @@ class ChargingManagementModule extends BaseModule {
         for (const w of sorted) {
             let targetW = 0;
             let targetA = 0;
-            let reason = 'limited_by_budget';
+            let reason = ReasonCodes.LIMITED_BY_BUDGET;
 
             if (w.controlBasis === 'none') {
-                reason = 'no_setpoint';
+                reason = ReasonCodes.NO_SETPOINT;
                 targetW = 0;
                 targetA = 0;
             } else if (!Number.isFinite(remainingW)) {
                 // unlimited
                 targetW = w.maxPW;
-                reason = 'unlimited';
+                reason = ReasonCodes.UNLIMITED;
             } else if (remainingW <= 0) {
                 targetW = 0;
-                reason = 'no_budget';
+                reason = ReasonCodes.NO_BUDGET;
             } else if (remainingW >= w.minPW || w.minPW === 0) {
                 targetW = Math.min(remainingW, w.maxPW);
-                reason = 'allocated';
+                reason = ReasonCodes.ALLOCATED;
                 if (targetW > 0 && w.minPW > 0 && targetW < w.minPW) {
                     targetW = 0;
-                    reason = 'below_min';
+                    reason = ReasonCodes.BELOW_MIN;
                 }
             } else {
                 targetW = 0;
-                reason = 'below_min';
+                reason = ReasonCodes.BELOW_MIN;
             }
 
             // Convert to A for AC current-based control
@@ -713,7 +1031,7 @@ class ChargingManagementModule extends BaseModule {
                 if (targetW > 0 && w.minPW > 0 && targetW < w.minPW) {
                     targetA = 0;
                     targetW = 0;
-                    reason = 'below_min';
+                    reason = ReasonCodes.BELOW_MIN;
                 }
             } else if (w.chargerType === 'AC') {
                 // purely informational for power-based AC
@@ -724,14 +1042,50 @@ class ChargingManagementModule extends BaseModule {
                 targetA = 0;
             }
 
-            // Apply budget accounting
-            if (Number.isFinite(remainingW)) {
-                remainingW = Math.max(0, remainingW - targetW);
-                usedW += targetW;
+            // MU6.11: Apply stepping + ramp limiting (limit ramp-up only; never limit ramp-down for safety)
+            const wbMaxDeltaW = clamp(num(w.maxDeltaWPerTick, maxDeltaWPerTick), 0, 1e12);
+            const wbMaxDeltaA = clamp(num(w.maxDeltaAPerTick, maxDeltaAPerTick), 0, 1e6);
+            const wbStepW = clamp(num(w.stepW, stepW), 0, 1e12);
+            const wbStepA = clamp(num(w.stepA, stepA), 0, 1e6);
+
+            let cmdW = targetW;
+            let cmdA = targetA;
+
+            const prevCmdW = this._lastCmdTargetW.get(w.safe);
+            const prevCmdA = this._lastCmdTargetA.get(w.safe);
+
+            if (w.controlBasis === 'currentA' && w.setAKey) {
+                cmdA = floorToStep(cmdA, wbStepA);
+                cmdA = clamp(cmdA, 0, w.maxA);
+                if (cmdA > 0 && w.minA > 0 && cmdA < w.minA) cmdA = 0;
+
+                cmdA = rampUp(prevCmdA, cmdA, wbMaxDeltaA);
+
+                if (cmdA > 0 && w.minA > 0 && cmdA < w.minA) cmdA = 0;
+                cmdW = (cmdA > 0 && w.vFactor > 0) ? (cmdA * w.vFactor) : 0;
+            } else {
+                cmdW = floorToStep(cmdW, wbStepW);
+                if (cmdW > 0 && w.minPW > 0 && cmdW < w.minPW) cmdW = 0;
+
+                cmdW = rampUp(prevCmdW, cmdW, wbMaxDeltaW);
+
+                if (cmdW > 0 && w.minPW > 0 && cmdW < w.minPW) cmdW = 0;
+
+                if (w.chargerType === 'AC') {
+                    cmdA = (cmdW > 0 && w.vFactor > 0) ? (cmdW / w.vFactor) : 0;
+                } else {
+                    cmdA = 0;
+                }
             }
 
-            totalTargetPowerW += targetW;
-            if (Number.isFinite(targetA) && targetA > 0) totalTargetCurrentA += targetA;
+            // Apply budget accounting (use commanded power)
+            if (Number.isFinite(remainingW)) {
+                remainingW = Math.max(0, remainingW - cmdW);
+                usedW += cmdW;
+            }
+
+            totalTargetPowerW += cmdW;
+            if (Number.isFinite(cmdA) && cmdA > 0) totalTargetCurrentA += cmdA;
 
             // Writes (consumer abstraction)
             let applied = false;
@@ -758,11 +1112,15 @@ class ChargingManagementModule extends BaseModule {
                 applyStatus = 'no_dp_registry';
             }
 
-            await this.adapter.setStateAsync(`${w.ch}.targetCurrentA`, targetA, true);
-            await this.adapter.setStateAsync(`${w.ch}.targetPowerW`, targetW, true);
+            // MU6.11: Remember last commanded setpoints for ramp limiting
+            this._lastCmdTargetW.set(w.safe, cmdW);
+            this._lastCmdTargetA.set(w.safe, cmdA);
+
+            await this.adapter.setStateAsync(`${w.ch}.targetCurrentA`, cmdA, true);
+            await this.adapter.setStateAsync(`${w.ch}.targetPowerW`, cmdW, true);
             await this.adapter.setStateAsync(`${w.ch}.applied`, applied, true);
             await this.adapter.setStateAsync(`${w.ch}.applyStatus`, applyStatus, true);
-                        await this.adapter.setStateAsync(`${w.ch}.reason`, w.enabled ? (w.online ? 'skipped' : 'offline') : 'disabled', true);
+            await this.adapter.setStateAsync(`${w.ch}.reason`, reason, true);
 debugAlloc.push({
                 safe: w.safe,
                 name: w.name,
@@ -788,7 +1146,7 @@ debugAlloc.push({
             await this.adapter.setStateAsync(`${w.ch}.targetCurrentA`, 0, true);
             await this.adapter.setStateAsync(`${w.ch}.targetPowerW`, 0, true);
             await this.adapter.setStateAsync(`${w.ch}.applied`, false, true);
-                        await this.adapter.setStateAsync(`${w.ch}.reason`, w.enabled ? (w.online ? 'skipped' : 'offline') : 'disabled', true);
+                        await this.adapter.setStateAsync(`${w.ch}.reason`, availabilityReason(!!w.enabled, !!w.online), true);
 }
 
         // MU6.1: diagnostics logging (compact, decision-leading)
@@ -831,7 +1189,7 @@ debugAlloc.push({
             await this.adapter.setStateAsync('chargingManagement.debug.allocations', '[]', true);
         }
 
-        await this.adapter.setStateAsync('chargingManagement.control.status', 'ok', true);
+        await this.adapter.setStateAsync('chargingManagement.control.status', pauseFollowPeakBudget ? 'paused_follow_peak_budget' : 'ok', true);
         await this.adapter.setStateAsync('chargingManagement.control.budgetW', Number.isFinite(budgetW) ? budgetW : 0, true);
         await this.adapter.setStateAsync('chargingManagement.control.usedW', Number.isFinite(budgetW) ? usedW : totalTargetPowerW, true);
         await this.adapter.setStateAsync('chargingManagement.control.remainingW', Number.isFinite(budgetW) ? remainingW : 0, true);
@@ -843,6 +1201,8 @@ debugAlloc.push({
                     this._chargingLastSeenMs.delete(safeKey);
                     this._chargingLastActiveMs.delete(safeKey);
                     this._chargingSinceMs.delete(safeKey);
+                    this._lastCmdTargetW.delete(safeKey);
+                    this._lastCmdTargetA.delete(safeKey);
                 }
             }
 

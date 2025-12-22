@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.0.31 (2025-12-22)
+
+* (MU7.1) Multi-Use Orchestrator Start: Multi-Use module is no longer stub. Reads configured consumers, exposes per-consumer targetW/targetA states, applies setpoints deterministically via applySetpoint(), and publishes applied/status/reason.
+* (MU7.1) Admin: Multi-Use consumers table added (type, priority, control basis, DP-keys, default targets).
+
+## 0.0.30 (2025-12-22)
+
+* (MU6.13) Admin UI: added safety fields for Peak Shaving (staleTimeoutSec, safetyMarginW, fastTrip*) and Charging Management (staleTimeoutSec, pauseBehavior, ramp/step); updated i18n.
+
+## 0.0.29 (2025-12-22)
+
+* (MU6.12) PeakShaving + ChargingManagement: Standardize reason codes (UPPER_SNAKE_CASE) for deterministic diagnostics.
+* (MU6.12) ChargingManagement: Fix failsafe applySetpoint in stale/pause paths (write 0 setpoints instead of referencing undefined vars).
+
+## 0.0.28 (2025-12-22)
+
+* (MU6.11) ChargingManagement: Ramp limiting + step setpoints (ramp-up only; ramp-down remains immediate for safety)
+
+## 0.0.27 (2025-12-22)
+
+* (MU6.10) ChargingManagement: Safe pause behavior when PeakShaving is active (pauseBehavior=rampDownToZero|followPeakBudget). No freeze of last setpoints.
+
+## 0.0.26 (2025-12-22)
+
+* (MU6.9) PeakShaving: add safetyMarginW headroom and fast-trip activation path (raw/max) to react to spikes while keeping smoothing for steady-state.
+
+## 0.0.25 (2025-12-22)
+
+* (MU6.8) ChargingManagement: Add stale-meter/budget failsafe using DatapointRegistry staleness (force safe targets=0, reason=stale_meter, status=failsafe_stale_meter)
+
+## 0.0.24 (2025-12-22)
+
+* (MU6.7) PeakShaving: stale meter failsafe (Reason: STALE_METER) using DatapointRegistry isStale/getAgeMs
+
+## 0.0.23 (2025-12-22)
+
+* (MU6.6) DatapointRegistry: add stale/fresh API (getAgeMs/isStale/getNumberFresh) for safe failsafe handling.
+
 ## 0.0.22 (2025-12-19)
 
 * (MU6.5) Admin UI: add i18n translation files (de/en) so JSONConfig labels are translated (German instance settings).

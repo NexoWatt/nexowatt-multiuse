@@ -226,9 +226,19 @@
           "type": "text",
           "label": "Grid point power (W) - State ID"
         },
+        "peakShaving.staleTimeoutSec": {
+          "type": "number",
+          "label": "Meter stale timeout (s)",
+          "help": "If meter values are older than this, Peak Shaving enters failsafe (STALE_METER) and will not release."
+        },
         "peakShaving.maxPowerW": {
           "type": "number",
           "label": "Max power (W)"
+        },
+        "peakShaving.safetyMarginW": {
+          "type": "number",
+          "label": "Safety margin (W)",
+          "help": "Subtracts from the max power limit to keep headroom for meter delay and load spikes."
         },
         "peakShaving.hysteresisW": {
           "type": "number",
@@ -282,6 +292,26 @@
         "peakShaving.smoothingSeconds": {
           "type": "number",
           "label": "Smoothing window (s)"
+        },
+        "peakShaving.fastTripEnabled": {
+          "type": "checkbox",
+          "label": "Fast trip enabled",
+          "help": "If enabled, Peak Shaving can activate immediately on spikes, bypassing activate delay."
+        },
+        "peakShaving.fastTripMode": {
+          "type": "select",
+          "label": "Fast trip mode",
+          "options": [
+            {
+              "label": "max (window)",
+              "value": "max"
+            },
+            {
+              "label": "raw (current)",
+              "value": "raw"
+            }
+          ],
+          "help": "Select spike detector: max of recent window or current raw value."
         },
         "divider_peak_dynamic": {
           "type": "divider",
@@ -545,6 +575,26 @@
           "type": "checkbox",
           "label": "Pause charging management when Peak Shaving is active"
         },
+        "chargingManagement.pauseBehavior": {
+          "type": "select",
+          "label": "Pause behavior",
+          "options": [
+            {
+              "label": "rampDownToZero",
+              "value": "rampDownToZero"
+            },
+            {
+              "label": "followPeakBudget",
+              "value": "followPeakBudget"
+            }
+          ],
+          "help": "When paused by Peak Shaving: ramp down to 0 (safest) or follow Peak Shaving available budget."
+        },
+        "chargingManagement.staleTimeoutSec": {
+          "type": "number",
+          "label": "Meter stale timeout (s)",
+          "help": "If meter/budget values are older than this, Charging Management forces safe targets (STALE_METER)."
+        },
         "chargingManagement.defaultPhases": {
           "type": "select",
           "label": "Default phases",
@@ -598,6 +648,26 @@
         "chargingManagement.maxCurrentA": {
           "type": "number",
           "label": "Default max current (A)"
+        },
+        "chargingManagement.maxDeltaWPerTick": {
+          "type": "number",
+          "label": "Max delta per tick (W)",
+          "help": "Limits ramp-up per control cycle. Ramp-down is always immediate for safety."
+        },
+        "chargingManagement.maxDeltaAPerTick": {
+          "type": "number",
+          "label": "Max delta per tick (A)",
+          "help": "Limits ramp-up per control cycle in amperes. Ramp-down is always immediate for safety."
+        },
+        "chargingManagement.stepW": {
+          "type": "number",
+          "label": "Step (W)",
+          "help": "Quantize setpoints to this step size (rounded down). Set 0 to disable."
+        },
+        "chargingManagement.stepA": {
+          "type": "number",
+          "label": "Step (A)",
+          "help": "Quantize current setpoints to this step size (rounded down). Set 0 to disable."
         },
         "chargingManagement.wallboxes": {
           "type": "table",
@@ -787,6 +857,109 @@
         "multiUse.reserveMinW": {
           "type": "number",
           "label": "Reserve minimum (W)"
+        },
+        "multiUse.consumers": {
+          "type": "table",
+          "label": "Consumers (Multi-Use)",
+          "newRow": true,
+          "allowAdd": true,
+          "allowDelete": true,
+          "rows": 50,
+          "items": [
+            {
+              "type": "text",
+              "width": "10%",
+              "attr": "key",
+              "title": "Key (unique)"
+            },
+            {
+              "type": "text",
+              "width": "15%",
+              "attr": "name",
+              "title": "Name"
+            },
+            {
+              "type": "select",
+              "width": "8%",
+              "attr": "type",
+              "title": "Type",
+              "options": [
+                {
+                  "label": "EVCS",
+                  "value": "evcs"
+                },
+                {
+                  "label": "Load",
+                  "value": "load"
+                }
+              ]
+            },
+            {
+              "type": "number",
+              "width": "8%",
+              "attr": "priority",
+              "title": "Priority",
+              "min": 0,
+              "max": 100000,
+              "step": 1
+            },
+            {
+              "type": "select",
+              "width": "10%",
+              "attr": "controlBasis",
+              "title": "Control basis",
+              "options": [
+                {
+                  "label": "Auto",
+                  "value": "auto"
+                },
+                {
+                  "label": "Current (A)",
+                  "value": "currentA"
+                },
+                {
+                  "label": "Power (W)",
+                  "value": "powerW"
+                },
+                {
+                  "label": "None",
+                  "value": "none"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "width": "12%",
+              "attr": "setAKey",
+              "title": "Setpoint (A) DP-Key"
+            },
+            {
+              "type": "text",
+              "width": "12%",
+              "attr": "setWKey",
+              "title": "Setpoint (W) DP-Key"
+            },
+            {
+              "type": "text",
+              "width": "12%",
+              "attr": "enableKey",
+              "title": "Enable DP-Key"
+            },
+            {
+              "type": "number",
+              "width": "8%",
+              "attr": "defaultTargetA",
+              "title": "Default target (A)",
+              "step": 0.1
+            },
+            {
+              "type": "number",
+              "width": "8%",
+              "attr": "defaultTargetW",
+              "title": "Default target (W)",
+              "step": 1
+            }
+          ]
         }
       }
     }

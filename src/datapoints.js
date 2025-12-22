@@ -128,6 +128,51 @@ class DatapointRegistry {
     }
 
     /**
+     * Age of the cached datapoint value in milliseconds.
+     * If the datapoint is unknown or not cached yet, returns +Infinity.
+     *
+     * @param {string} key
+     * @returns {number}
+     */
+    getAgeMs(key) {
+        const e = this.getEntry(key);
+        if (!e) return Number.POSITIVE_INFINITY;
+        const c = this.cacheByObjectId.get(e.objectId);
+        const ts = c && Number.isFinite(c.ts) ? Number(c.ts) : null;
+        if (!ts) return Number.POSITIVE_INFINITY;
+        const age = Date.now() - ts;
+        return age >= 0 ? age : 0;
+    }
+
+    /**
+     * Returns true if the cached value is older than maxAgeMs.
+     * If the datapoint is unknown/not cached, it is treated as stale.
+     *
+     * @param {string} key
+     * @param {number} maxAgeMs
+     * @returns {boolean}
+     */
+    isStale(key, maxAgeMs) {
+        const age = this.getAgeMs(key);
+        if (!Number.isFinite(age)) return true;
+        if (!Number.isFinite(maxAgeMs) || maxAgeMs <= 0) return age === Number.POSITIVE_INFINITY;
+        return age > maxAgeMs;
+    }
+
+    /**
+     * Read a numeric datapoint only if it is fresh.
+     *
+     * @param {string} key
+     * @param {number} maxAgeMs
+     * @param {number|null} fallback
+     * @returns {number|null}
+     */
+    getNumberFresh(key, maxAgeMs, fallback = null) {
+        if (this.isStale(key, maxAgeMs)) return fallback;
+        return this.getNumber(key, fallback);
+    }
+
+/**
      * @param {string} key
      * @param {number|null} fallback
      */
