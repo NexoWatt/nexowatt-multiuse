@@ -1,6 +1,9 @@
 'use strict';
 
+const { SpeicherMappingModule } = require('./modules/storage-mapping');
+const { SpeicherRegelungModule } = require('./modules/storage-control');
 const { PeakShavingModule } = require('./modules/peak-shaving');
+const { TarifVisModule } = require('./modules/tarif-vis');
 const { ChargingManagementModule } = require('./modules/charging-management');
 const { MultiUseModule } = require('./modules/multi-use');
 
@@ -68,6 +71,13 @@ class ModuleManager {
     }
 
     async init() {
+        // Speicher-Zuordnung (Installateur) – registriert st.* Datenpunkte
+        this.modules.push({
+            key: 'speicherMapping',
+            instance: new SpeicherMappingModule(this.adapter, this.dp),
+            enabledFn: () => true,
+        });
+
         // Peak shaving
         this.modules.push({
             key: 'peakShaving',
@@ -75,7 +85,22 @@ class ModuleManager {
             enabledFn: () => !!this.adapter.config.enablePeakShaving,
         });
 
-        // Charging management
+                // Tarif (VIS) – stellt Ladepark-Deckel bereit
+        this.modules.push({
+            key: 'tarifVis',
+            instance: new TarifVisModule(this.adapter, this.dp),
+            enabledFn: () => true,
+        });
+        // Speicher-Regelung (Sollleistung/Reserve/PV/Lastspitze)
+        this.modules.push({
+            key: 'speicherRegelung',
+            instance: new SpeicherRegelungModule(this.adapter, this.dp),
+            enabledFn: () => true,
+        });
+
+
+
+// Charging management
         this.modules.push({
             key: 'chargingManagement',
             instance: new ChargingManagementModule(this.adapter, this.dp),

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.0.37 (2025-12-27)
+
+* (Schritt 2) Speicher-Regelung: Sollleistung (W) mit Lastspitzenkappung (Peak Shaving), PV-Überschuss-Laden und Notstrom-Reserve (SoC-Rückhalt).
+* Admin: Neue Parameter für Speicher-Regelung (Timeout, Max W, Schrittweite, Rampenbegrenzung, Reserve, PV-Schwelle) im Tab „Speicher“.
+
+## 0.0.36 (2025-12-27)
+
+* (MU7.6) Admin: Neuer Speicher-Tab (Installateur) für herstellerunabhängige Speicher-Datenpunkt-Zuordnung (SoC, Ist-Leistung, Sollleistung/Begrenzung/Ein-Aus). Diagnose-Zustände unter `speicher.*` und Registrierung der Zuordnung als interne Schlüssel `st.*`.
+
+## 0.0.35 (2025-12-27)
+
+* (MU7.5) VIS-Tarif: Anbindung der NexoWatt-VIS Einstellungen (`nexowatt-vis.0.settings.*`) und Berechnung eines Ladepark-Leistungsdeckels. Der Deckel wird als Datenpunkt-Schlüssel `cm.tariffBudgetW` bereitgestellt und vom Ladepark-Management als zusätzliche Begrenzung genutzt.
+
 ## 0.0.34 (2025-12-22)
 
 * (MU7.4) Admin: Fixed jsonConfig validation warnings by removing unsupported `newRow` property.

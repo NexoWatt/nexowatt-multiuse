@@ -16,6 +16,19 @@ systemDictionary = {
         'en': 'Enable Multi-Use',
         'de': 'Multi-Use aktivieren'
     },
+    'Enable Storage Control': {
+        'en': 'Enable Storage Control',
+        'de': 'Speicher-Steuerung aktivieren'
+    },
+    'Storage': {
+        'en': 'Storage',
+        'de': 'Speicher'
+    },
+    'Storage control mode': {
+        'en': 'Storage control mode',
+        'de': 'Steuerungsart Speicher'
+    },
+
     'Scheduler interval (ms)': {
         'en': 'Scheduler interval (ms)',
         'de': 'Scheduler-Intervall (ms)'
