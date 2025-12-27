@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "nexowatt-multiuse",
-        "version": "0.0.37",
+        "version": "0.0.39",
         "news": {
             "0.0.1": {
                 "en": "Initial architecture skeleton: module manager and schedulers.",
@@ -71,6 +71,10 @@
             "0.0.29": {
                 "en": "MU6.12: Standardized reason codes (PeakShaving + ChargingManagement).",
                 "de": "MU6.12: Reason-Codes vereinheitlicht (PeakShaving + ChargingManagement)."
+            },
+            "0.0.38": {
+                "en": "MU7.8: Tariff grid-charge gate (cm.gridChargeAllowed), PV-only enforcement for EVCS budgets, storage respects tariff gate; tariff module publishes current/limit price & allow flag.",
+                "de": "MU7.8: Tarif-Netzlade-Freigabe (cm.gridChargeAllowed), PV-only Erzwingung für EVCS-Budgets, Speicher respektiert Tarif-Sperre; Tarif-Modul publiziert aktuellen/Limit-Preis & Freigabe."
             }
         },
         "titleLang": {

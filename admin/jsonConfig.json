@@ -111,10 +111,13 @@
                             "title": "Name"
                         },
                         {
-                            "type": "text",
+                            "type": "objectId",
                             "width": "30%",
                             "attr": "objectId",
-                            "title": "ioBroker Object ID"
+                            "title": "ioBroker Object ID",
+                            "types": [
+                                "state"
+                            ]
                         },
                         {
                             "type": "select",
@@ -227,8 +230,11 @@
                     ]
                 },
                 "peakShaving.gridPointPowerId": {
-                    "type": "text",
-                    "label": "Grid point power (W) - State ID"
+                    "type": "objectId",
+                    "label": "Grid point power (W) - State ID",
+                    "types": [
+                        "state"
+                    ]
                 },
                 "peakShaving.staleTimeoutSec": {
                     "type": "number",
@@ -322,12 +328,15 @@
                     "label": "Dynamic Mode Inputs (optional)"
                 },
                 "peakShaving.allowedPowerId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Allowed max power (W) - State ID (optional)",
                     "help": "Optional external limit (e.g. grid signal). In dynamic mode the effective limit is min(Max power, Allowed max power) minus Reserve.",
                     "sm": 12,
                     "md": 12,
-                    "lg": 12
+                    "lg": 12,
+                    "types": [
+                        "state"
+                    ]
                 },
                 "peakShaving.reserveW": {
                     "type": "number",
@@ -338,52 +347,70 @@
                     "lg": 12
                 },
                 "peakShaving.baseLoadPowerId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Base load / house consumption (W) - State ID (optional)",
                     "help": "If set, the adapter also calculates the target power for controlled loads: availableForControlledW = effectiveLimit - (baseLoad - PV - Battery).",
                     "sm": 12,
                     "md": 12,
-                    "lg": 12
+                    "lg": 12,
+                    "types": [
+                        "state"
+                    ]
                 },
                 "peakShaving.pvPowerId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "PV power (W) - State ID (optional)",
                     "help": "PV generation power (W), positive. Used only for availableForControlledW calculation.",
                     "sm": 12,
                     "md": 12,
-                    "lg": 12
+                    "lg": 12,
+                    "types": [
+                        "state"
+                    ]
                 },
                 "peakShaving.batteryPowerId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Battery power (W) - State ID (optional)",
                     "help": "Battery discharge power (W), positive. Used only for availableForControlledW calculation.",
                     "sm": 12,
                     "md": 12,
-                    "lg": 12
+                    "lg": 12,
+                    "types": [
+                        "state"
+                    ]
                 },
                 "peakShaving.l1CurrentId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Phase L1 current (A) - State ID",
                     "help": "ioBroker state ID (optional). Leave empty if you map via global datapoints.",
                     "sm": 12,
                     "md": 12,
-                    "lg": 12
+                    "lg": 12,
+                    "types": [
+                        "state"
+                    ]
                 },
                 "peakShaving.l2CurrentId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Phase L2 current (A) - State ID",
                     "help": "ioBroker state ID (optional). Leave empty if you map via global datapoints.",
                     "sm": 12,
                     "md": 12,
-                    "lg": 12
+                    "lg": 12,
+                    "types": [
+                        "state"
+                    ]
                 },
                 "peakShaving.l3CurrentId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Phase L3 current (A) - State ID",
                     "help": "ioBroker state ID (optional). Leave empty if you map via global datapoints.",
                     "sm": 12,
                     "md": 12,
-                    "lg": 12
+                    "lg": 12,
+                    "types": [
+                        "state"
+                    ]
                 },
                 "divider_peak_actuation": {
                     "type": "divider",
@@ -401,10 +428,13 @@
                     "rows": 50,
                     "items": [
                         {
-                            "type": "text",
+                            "type": "objectId",
                             "width": "10%",
                             "attr": "id",
-                            "title": "ID (unique)"
+                            "title": "ID (unique)",
+                            "types": [
+                                "state"
+                            ]
                         },
                         {
                             "type": "text",
@@ -570,9 +600,12 @@
                     "max": 1000000
                 },
                 "chargingManagement.budgetPowerId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Budget power (W) - State ID (for fromDatapoint)",
-                    "help": "If total budget mode is 'fromDatapoint', this state provides the budget in W."
+                    "help": "If total budget mode is 'fromDatapoint', this state provides the budget in W.",
+                    "types": [
+                        "state"
+                    ]
                 },
                 "chargingManagement.pauseWhenPeakShavingActive": {
                     "type": "checkbox",
@@ -884,9 +917,12 @@
                     "label": "Speicher-Datenpunkte (Installateur)"
                 },
                 "storage.datapoints.socObjectId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Speicher Ladezustand (SoC) – Datenpunkt-ID",
-                    "help": "Pflicht. Prozentwert 0–100."
+                    "help": "Pflicht. Prozentwert 0–100.",
+                    "types": [
+                        "state"
+                    ]
                 },
                 "storage.datapoints.socScale": {
                     "type": "number",
@@ -894,9 +930,12 @@
                     "help": "Standard 1. Beispiel: Wenn der Speicher 0–1 liefert, dann 100 eintragen."
                 },
                 "storage.datapoints.batteryPowerObjectId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Speicher Ist-Leistung (W) – Datenpunkt-ID",
-                    "help": "Optional. Hilft für Diagnose und spätere Regelung."
+                    "help": "Optional. Hilft für Diagnose und spätere Regelung.",
+                    "types": [
+                        "state"
+                    ]
                 },
                 "storage.datapoints.batteryPowerScale": {
                     "type": "number",
@@ -970,9 +1009,12 @@
                     "help": "Erst ab dieser Einspeiseleistung wird geladen (zur Vermeidung von Flattern)."
                 },
                 "storage.datapoints.targetPowerObjectId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Speicher Sollleistung (W) – Datenpunkt-ID",
-                    "help": "Nur Modus „Sollleistung (W)“. Empfehlung: negativ = Laden, positiv = Entladen (bei Bedarf Vorzeichen umdrehen)."
+                    "help": "Nur Modus „Sollleistung (W)“. Empfehlung: negativ = Laden, positiv = Entladen (bei Bedarf Vorzeichen umdrehen).",
+                    "types": [
+                        "state"
+                    ]
                 },
                 "storage.datapoints.targetPowerScale": {
                     "type": "number",
@@ -985,29 +1027,44 @@
                     "help": "Aktivieren, wenn der Speicher eine andere Vorzeichen-Regel erwartet."
                 },
                 "storage.datapoints.maxChargeObjectId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Maximale Ladeleistung (W) – Datenpunkt-ID",
-                    "help": "Nur Modus „Lade/Entlade-Begrenzung“."
+                    "help": "Nur Modus „Lade/Entlade-Begrenzung“.",
+                    "types": [
+                        "state"
+                    ]
                 },
                 "storage.datapoints.maxDischargeObjectId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Maximale Entladeleistung (W) – Datenpunkt-ID",
-                    "help": "Nur Modus „Lade/Entlade-Begrenzung“."
+                    "help": "Nur Modus „Lade/Entlade-Begrenzung“.",
+                    "types": [
+                        "state"
+                    ]
                 },
                 "storage.datapoints.chargeEnableObjectId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Laden erlaubt (Ein/Aus) – Datenpunkt-ID",
-                    "help": "Nur Modus „Ein/Aus“."
+                    "help": "Nur Modus „Ein/Aus“.",
+                    "types": [
+                        "state"
+                    ]
                 },
                 "storage.datapoints.dischargeEnableObjectId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Entladen erlaubt (Ein/Aus) – Datenpunkt-ID",
-                    "help": "Nur Modus „Ein/Aus“."
+                    "help": "Nur Modus „Ein/Aus“.",
+                    "types": [
+                        "state"
+                    ]
                 },
                 "storage.datapoints.reserveSocObjectId": {
-                    "type": "text",
+                    "type": "objectId",
                     "label": "Reserve-SoC (%) – Datenpunkt-ID",
-                    "help": "Optional. Wenn der Speicher eine Reserve direkt unterstützt."
+                    "help": "Optional. Wenn der Speicher eine Reserve direkt unterstützt.",
+                    "types": [
+                        "state"
+                    ]
                 },
                 "divider_storage_info": {
                     "type": "divider",

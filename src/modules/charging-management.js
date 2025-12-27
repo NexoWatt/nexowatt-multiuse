@@ -538,6 +538,37 @@ class ChargingManagementModule extends BaseModule {
             }
         };
 
+
+        // Tariff-derived grid charge gating (optional; provided by tarif-vis.js)
+        let gridChargeAllowed = true;
+        if (this.dp && typeof this.dp.getEntry === 'function' && this.dp.getEntry('cm.gridChargeAllowed')) {
+            const age = this.dp.getAgeMs('cm.gridChargeAllowed');
+            const fresh = (age === null || age === undefined) ? true : (age <= staleTimeoutMs);
+            gridChargeAllowed = fresh ? this.dp.getBoolean('cm.gridChargeAllowed', true) : false;
+        }
+
+        const forcePvSurplusOnly = !gridChargeAllowed;
+        const pvSurplusOnly = cfg.pvSurplusOnly === true || mode === 'pvSurplus';
+        const effectivePvSurplusOnly = pvSurplusOnly || forcePvSurplusOnly;
+
+        // Precompute PV-only cap (used for all budget modes when PV-only is active)
+        let pvCapW = null;
+        let pvSurplusW = null;
+        let gridW = null;
+
+        if (effectivePvSurplusOnly) {
+            pvSurplusW = getFirstDpNumber(['cm.pvSurplusW']);
+            gridW = getFirstDpNumber(['cm.gridPowerW', 'ps.gridPowerW']);
+
+            // Fallback: if no PV surplus DP, estimate from grid import/export (negative = export)
+            if (typeof pvSurplusW !== 'number' || !Number.isFinite(pvSurplusW)) {
+                if (typeof gridW === 'number' && Number.isFinite(gridW)) {
+                    pvSurplusW = Math.max(0, -gridW);
+                }
+            }
+
+            pvCapW = (typeof pvSurplusW === 'number' && Number.isFinite(pvSurplusW) && pvSurplusW > 0) ? pvSurplusW : 0;
+        }
 if (budgetMode === 'engine') {
             /** @type {Array<{k:string, w:number}>} */
             const components = [];
@@ -557,25 +588,12 @@ if (budgetMode === 'engine') {
             const tariff = getFirstDpNumber(['cm.tariffBudgetW', 'cm.tariffLimitW']);
             if (typeof tariff === 'number' && Number.isFinite(tariff) && tariff > 0) components.push({ k: 'tariff', w: tariff });
 
-            // PV-surplus cap (optional; enabled by mode=pvSurplus or pvSurplusOnly)
-            const pvSurplusOnly = cfg.pvSurplusOnly === true || mode === 'pvSurplus';
-
-            let pvSurplusW = getFirstDpNumber(['cm.pvSurplusW']);
-            const gridW = getFirstDpNumber(['cm.gridPowerW', 'ps.gridPowerW']);
-
-            if (typeof pvSurplusW !== 'number' || !Number.isFinite(pvSurplusW)) {
-                // Convention: negative grid power => export. If your source uses the opposite sign, invert via globalDatapoints.
-                if (typeof gridW === 'number' && Number.isFinite(gridW)) {
-                    pvSurplusW = Math.max(0, -gridW);
-                }
+                        // PV-surplus cap (optional; enabled by pvSurplusOnly/mode=pvSurplus; additionally forced when tariff blocks grid charging)
+            if (effectivePvSurplusOnly && typeof pvCapW === 'number' && Number.isFinite(pvCapW)) {
+                components.push({ k: 'pvSurplus', w: pvCapW });
             }
 
-            if (pvSurplusOnly) {
-                const pvCap = (typeof pvSurplusW === 'number' && Number.isFinite(pvSurplusW) && pvSurplusW > 0) ? pvSurplusW : 0;
-                components.push({ k: 'pvSurplus', w: pvCap });
-            }
-
-            if (components.length) {
+if (components.length) {
                 let min = Number.POSITIVE_INFINITY;
                 for (const c of components) {
                     const w = Number(c.w);
@@ -598,6 +616,10 @@ if (budgetMode === 'engine') {
                 engine: true,
                 mode,
                 pvSurplusOnly,
+                forcePvSurplusOnly,
+                gridChargeAllowed,
+                effectivePvSurplusOnly,
+                pvCapW: (typeof pvCapW === 'number' && Number.isFinite(pvCapW)) ? pvCapW : null,
                 gridW: (typeof gridW === 'number' && Number.isFinite(gridW)) ? gridW : null,
                 pvSurplusW: (typeof pvSurplusW === 'number' && Number.isFinite(pvSurplusW)) ? pvSurplusW : null,
                 components,
@@ -612,6 +634,23 @@ if (budgetMode === 'engine') {
             budgetW = (typeof b === 'number' && b > 0) ? b : Number.POSITIVE_INFINITY;
         } else {
             budgetW = Number.POSITIVE_INFINITY;
+        }
+
+
+        // If PV-only is active (explicitly or forced by tariff), enforce PV cap for ALL budget modes
+        if (effectivePvSurplusOnly && typeof pvCapW === 'number' && Number.isFinite(pvCapW)) {
+            const cap = Math.max(0, pvCapW);
+            const cur = (typeof budgetW === 'number' && Number.isFinite(budgetW)) ? budgetW : Number.POSITIVE_INFINITY;
+            budgetW = Math.max(0, Math.min(cur, cap));
+
+            if (!String(effectiveBudgetMode || '').includes('pvSurplus')) {
+                effectiveBudgetMode = `${effectiveBudgetMode}+pvSurplus`;
+            }
+
+            if (budgetDebug && typeof budgetDebug === 'object') {
+                budgetDebug.pvCapAppliedW = cap;
+                budgetDebug.budgetAfterPvCapW = budgetW;
+            }
         }
 
         const peakActive = await this._getPeakShavingActive();

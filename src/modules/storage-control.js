@@ -76,11 +76,23 @@ class SpeicherRegelungModule extends BaseModule {
             await this._applyTargetW(0, 'Netzleistung fehlt oder zu alt', 'aus');
             await this._setIfChanged('speicher.regelung.netzLeistungW', null);
             await this._setIfChanged('speicher.regelung.netzAlterMs', typeof gridAge === 'number' ? Math.round(gridAge) : null);
+            await this._setIfChanged('speicher.regelung.netzLadenErlaubt', null);
             return;
         }
-
         await this._setIfChanged('speicher.regelung.netzLeistungW', Math.round(gridW));
         await this._setIfChanged('speicher.regelung.netzAlterMs', typeof gridAge === 'number' ? Math.round(gridAge) : null);
+
+
+        // Tarif-Freigabe für Netzladung (aus Tarif-Modul; konservativ bei Stale)
+        let gridChargeAllowed = true;
+        if (this.dp && typeof this.dp.getEntry === 'function' && this.dp.getEntry('cm.gridChargeAllowed')) {
+            const age = this.dp.getAgeMs('cm.gridChargeAllowed');
+            const fresh = (age === null || age === undefined) ? true : (age <= staleMs);
+            gridChargeAllowed = fresh ? this.dp.getBoolean('cm.gridChargeAllowed', true) : false;
+        }
+        await this._setIfChanged('speicher.regelung.netzLadenErlaubt', !!gridChargeAllowed);
+
+        const exportW = Math.max(0, -gridW); // negative Netzleistung = Einspeisung
 
         if (typeof soc === 'number') {
             await this._setIfChanged('speicher.regelung.socPct', Math.round(soc * 10) / 10);
@@ -138,6 +150,21 @@ class SpeicherRegelungModule extends BaseModule {
                 if (t.modus === 1 && typeof t.storageW === 'number') {
                     // VIS liefert Sollleistung in W: negativ = Laden, positiv = Entladen
                     let w = t.storageW;
+
+                    // Wenn Netzladen gesperrt ist (Tarif-Logik), dann nur PV-Überschuss (Einspeisung) zum Laden nutzen
+                    if (w < 0 && !gridChargeAllowed) {
+                        const thr = Math.max(0, num(cfg.pvExportThresholdW, 200));
+                        const pvCapW = (exportW >= thr) ? exportW : 0;
+                        const cappedW = -Math.min(Math.abs(w), pvCapW);
+
+                        if (cappedW === 0) {
+                            reason = 'Tarif: Netzladen gesperrt';
+                        } else {
+                            reason = 'Tarif: Netzladen gesperrt, nur PV-Überschuss';
+                        }
+                        source = 'tarif';
+                        w = cappedW;
+                    }
                     // Reserve blockiert Entladen
                     if (reserveActive && w > 0) {
                         w = 0;
@@ -160,7 +187,6 @@ class SpeicherRegelungModule extends BaseModule {
         // 3) Eigenverbrauch: PV-Überschuss laden (wenn keine Lastspitze/Tarif aktiv)
         if (targetW === 0 && cfg.pvEnabled !== false) {
             const thr = Math.max(0, num(cfg.pvExportThresholdW, 200));
-            const exportW = Math.max(0, -gridW); // negative Netzleistung = Einspeisung
             const canCharge = (typeof soc !== 'number') ? true : (soc < 100);
             if (exportW >= thr && canCharge) {
                 targetW = -clamp(exportW, 0, maxChargeW);

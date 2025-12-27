@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.39 (2025-12-27)
+* MU7.9: Admin: Datenpunkt-IDs per Objekt-Browser auswählbar (objectId-Picker) statt manuell tippen; betrifft globale DP-Tabelle sowie Peak/Charging/Storage-Mappings.
+
+## 0.0.38 (2025-12-27)
+* MU7.8: Tarif-Netzlade-Freigabe als bool `cm.gridChargeAllowed` (aus Tarif-Modul), inkl. neuer Diagnose-States (`tarif.preisGrenzeEurProKwh`, `tarif.preisAktuellEurProKwh`, `tarif.netzLadenErlaubt`).
+* Charging-Management: PV-only wird bei Tarif-Sperre automatisch erzwungen (BudgetModes: engine/static/fromDP/fromPeak/unlimited); Budget-Debug erweitert.
+* Storage-Control: Tarif-Sperre blockiert Netzladung; negative Sollleistung wird auf PV-Überschuss (Einspeisung) gekappt.
+
 ## 0.0.37 (2025-12-27)
 
 * (Schritt 2) Speicher-Regelung: Sollleistung (W) mit Lastspitzenkappung (Peak Shaving), PV-Überschuss-Laden und Notstrom-Reserve (SoC-Rückhalt).
