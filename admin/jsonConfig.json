@@ -314,7 +314,7 @@
               "clone": "id",
               "validator": "(() => {const peakEn=(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true);const actEn=((((data.peakShaving && data.peakShaving.actuationEnabled) ?? data['peakShaving.actuationEnabled'])) === true);if(!(peakEn && actEn)) return true;const arr=(((data.peakShaving && data.peakShaving.actuators) ?? data['peakShaving.actuators']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const ids=arr.map(a=>a && a.id).filter(Boolean);if(ids.length!==arr.length) return false;if((new Set(ids)).size!==ids.length) return false;return arr.every(a => !!a.setpointId);})()",
               "validatorErrorText": "Actuators: Add at least one actuator with unique ID and a setpoint State ID.",
-              "validatorNoSaveOnError": true
+              "validatorNoSaveOnError": false
             }
           }
         },
@@ -638,7 +638,7 @@
               "clone": "key",
               "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const arr=(((data.chargingManagement && data.chargingManagement.wallboxes) ?? data['chargingManagement.wallboxes']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(w=>w && w.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(w => !!w.actualPowerWId && (!!w.setCurrentAId || !!w.setPowerWId));})()",
               "validatorErrorText": "Wallboxes: Add at least one wallbox with unique Key, Actual power (W) and a setpoint (A or W).",
-              "validatorNoSaveOnError": true
+              "validatorNoSaveOnError": false
             }
           }
         },
@@ -798,7 +798,7 @@
               "clone": "key",
               "validator": "(() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAKey || !!c.setWKey);})()",
               "validatorErrorText": "Multi-Use consumers: Add at least one consumer with unique Key and a setpoint DP key (A or W).",
-              "validatorNoSaveOnError": true
+              "validatorNoSaveOnError": false
             }
           }
         },
@@ -1578,7 +1578,7 @@
           "clone": "id",
           "validator": "(() => {const peakEn=(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true);const actEn=((((data.peakShaving && data.peakShaving.actuationEnabled) ?? data['peakShaving.actuationEnabled'])) === true);if(!(peakEn && actEn)) return true;const arr=(((data.peakShaving && data.peakShaving.actuators) ?? data['peakShaving.actuators']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const ids=arr.map(a=>a && a.id).filter(Boolean);if(ids.length!==arr.length) return false;if((new Set(ids)).size!==ids.length) return false;return arr.every(a => !!a.setpointId);})()",
           "validatorErrorText": "Actuators: Add at least one actuator with unique ID and a setpoint State ID.",
-          "validatorNoSaveOnError": true
+          "validatorNoSaveOnError": false
         }
       }
     },
@@ -2072,7 +2072,7 @@
           "clone": "key",
           "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const arr=(((data.chargingManagement && data.chargingManagement.wallboxes) ?? data['chargingManagement.wallboxes']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(w=>w && w.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(w => !!w.actualPowerWId && (!!w.setCurrentAId || !!w.setPowerWId));})()",
           "validatorErrorText": "Wallboxes: Add at least one wallbox with unique Key, Actual power (W) and a setpoint (A or W).",
-          "validatorNoSaveOnError": true
+          "validatorNoSaveOnError": false
         }
       }
     },
@@ -2549,7 +2549,7 @@
           "clone": "key",
           "validator": "(() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAKey || !!c.setWKey);})()",
           "validatorErrorText": "Multi-Use consumers: Add at least one consumer with unique Key and a setpoint DP key (A or W).",
-          "validatorNoSaveOnError": true
+          "validatorNoSaveOnError": false
         }
       }
     },
