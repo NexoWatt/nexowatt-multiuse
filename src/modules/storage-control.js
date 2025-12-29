@@ -64,8 +64,9 @@ class SpeicherRegelungModule extends BaseModule {
         const now = Date.now();
         const staleMs = Math.max(1, Math.round(num(cfg.staleTimeoutSec, 15) * 1000));
 
-        const gridW = this.dp ? this.dp.getNumberFresh('ps.gridPowerW', staleMs, null) : null;
-        const gridAge = this.dp ? this.dp.getAgeMs('ps.gridPowerW') : null;
+        let gridW = this.dp ? this.dp.getNumberFresh('grid.powerW', staleMs, null) : null;
+        if (typeof gridW !== 'number' && this.dp) gridW = this.dp.getNumberFresh('ps.gridPowerW', staleMs, null);
+        const gridAge = this.dp ? (this.dp.getEntry('grid.powerW') ? this.dp.getAgeMs('grid.powerW') : this.dp.getAgeMs('ps.gridPowerW')) : null;
 
         // SoC für Reserve
         const soc = this.dp ? this.dp.getNumberFresh('st.socPct', staleMs, null) : null;
@@ -153,7 +154,11 @@ class SpeicherRegelungModule extends BaseModule {
 
                     // Wenn Netzladen gesperrt ist (Tarif-Logik), dann nur PV-Überschuss (Einspeisung) zum Laden nutzen
                     if (w < 0 && !gridChargeAllowed) {
-                        const thr = Math.max(0, num(cfg.pvExportThresholdW, 200));
+                        const zeCfg = (this.adapter.config && this.adapter.config.enableGridConstraints) ? (this.adapter.config.gridConstraints || {}) : {};
+                        const zeEnabled = !!((this.adapter.config && this.adapter.config.enableGridConstraints) && zeCfg.zeroExportEnabled);
+                        const zeDeadband = Math.max(0, num(zeCfg.zeroExportDeadbandW, 50));
+                        const thrBase = Math.max(0, num(cfg.pvExportThresholdW, 200));
+                        const thr = zeEnabled ? Math.min(thrBase, zeDeadband) : thrBase;
                         const pvCapW = (exportW >= thr) ? exportW : 0;
                         const cappedW = -Math.min(Math.abs(w), pvCapW);
 
@@ -186,11 +191,20 @@ class SpeicherRegelungModule extends BaseModule {
 
         // 3) Eigenverbrauch: PV-Überschuss laden (wenn keine Lastspitze/Tarif aktiv)
         if (targetW === 0 && cfg.pvEnabled !== false) {
-            const thr = Math.max(0, num(cfg.pvExportThresholdW, 200));
+            // Zero-Export (Nulleinspeisung): bei Export möglichst früh (Schwellwert) in den Speicher laden.
+            // Hinweis: Extra-Bias nur, wenn Netzladen erlaubt ist (sonst würde der Bias u.U. Netzenergie in den Speicher ziehen).
+            const zeCfg = (this.adapter.config && this.adapter.config.enableGridConstraints) ? (this.adapter.config.gridConstraints || {}) : {};
+            const zeEnabled = !!((this.adapter.config && this.adapter.config.enableGridConstraints) && zeCfg.zeroExportEnabled);
+            const zeDeadband = Math.max(0, num(zeCfg.zeroExportDeadbandW, 50));
+            const zeBias = Math.max(0, num(zeCfg.zeroExportBiasW, 80));
+
+            const thrBase = Math.max(0, num(cfg.pvExportThresholdW, 200));
+            const thr = zeEnabled ? Math.min(thrBase, zeDeadband) : thrBase;
             const canCharge = (typeof soc !== 'number') ? true : (soc < 100);
             if (exportW >= thr && canCharge) {
-                targetW = -clamp(exportW, 0, maxChargeW);
-                reason = 'Eigenverbrauch: PV-Überschuss laden';
+                const extraBias = (zeEnabled && gridChargeAllowed) ? zeBias : 0;
+                targetW = -clamp(exportW + extraBias, 0, maxChargeW);
+                reason = zeEnabled ? 'Nulleinspeisung: Export in Speicher umleiten' : 'Eigenverbrauch: PV-Überschuss laden';
                 source = 'pv';
             }
         }

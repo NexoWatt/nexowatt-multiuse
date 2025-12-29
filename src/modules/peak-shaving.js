@@ -262,6 +262,21 @@ class PeakShavingModule extends BaseModule {
             limitW = (typeof maxPowerW === 'number' && maxPowerW > 0) ? maxPowerW : 0;
         }
 
+        // GridConstraints (RLM): zusätzliche dynamische Obergrenze für den Netzbezug
+        // (wird nur berücksichtigt, wenn das GridConstraints-Modul aktiv ist und RLM eingeschaltet ist)
+        if (this.adapter.config.enableGridConstraints && this.adapter.config.gridConstraints && this.adapter.config.gridConstraints.rlmEnabled) {
+            try {
+                const st = await this.adapter.getStateAsync('gridConstraints.rlm.capNowW');
+                const cap = (st && typeof st.val === 'number') ? st.val : Number(st && st.val);
+                if (Number.isFinite(cap) && cap > 0) {
+                    limitW = (limitW > 0) ? Math.min(limitW, cap) : cap;
+                }
+            } catch {
+                // ignore
+            }
+        }
+
+
         // MU6.9: Safety margin (keep headroom to avoid overload due to latency/noise)
         if (typeof limitW === 'number' && limitW > 0) {
             limitW = Math.max(0, limitW - Math.max(0, safetyMarginW));

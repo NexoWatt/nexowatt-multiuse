@@ -558,7 +558,7 @@ class ChargingManagementModule extends BaseModule {
 
         if (effectivePvSurplusOnly) {
             pvSurplusW = getFirstDpNumber(['cm.pvSurplusW']);
-            gridW = getFirstDpNumber(['cm.gridPowerW', 'ps.gridPowerW']);
+            gridW = getFirstDpNumber(['cm.gridPowerW', 'grid.powerW', 'ps.gridPowerW']);
 
             // Fallback: if no PV surplus DP, estimate from grid import/export (negative = export)
             if (typeof pvSurplusW !== 'number' || !Number.isFinite(pvSurplusW)) {

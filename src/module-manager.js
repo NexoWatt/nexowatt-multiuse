@@ -2,6 +2,7 @@
 
 const { SpeicherMappingModule } = require('./modules/storage-mapping');
 const { SpeicherRegelungModule } = require('./modules/storage-control');
+const { GridConstraintsModule } = require('./modules/grid-constraints');
 const { PeakShavingModule } = require('./modules/peak-shaving');
 const { TarifVisModule } = require('./modules/tarif-vis');
 const { ChargingManagementModule } = require('./modules/charging-management');
@@ -76,6 +77,13 @@ class ModuleManager {
             key: 'speicherMapping',
             instance: new SpeicherMappingModule(this.adapter, this.dp),
             enabledFn: () => true,
+        });
+
+        // Grid constraints (RLM / Nulleinspeisung)
+        this.modules.push({
+            key: 'gridConstraints',
+            instance: new GridConstraintsModule(this.adapter, this.dp),
+            enabledFn: () => !!this.adapter.config.enableGridConstraints,
         });
 
         // Peak shaving

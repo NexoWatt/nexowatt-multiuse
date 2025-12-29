@@ -4,15 +4,15 @@
   "items": {
     "tab_wizard": {
       "type": "panel",
-      "label": "Setup Wizard",
+      "label": "Setup‑Assistent",
       "items": {
         "wizard.intro": {
           "type": "staticText",
-          "text": "This wizard helps you set up the adapter in the recommended order. You can switch to the expert tabs at any time."
+          "text": "Dieser Assistent hilft dir beim Einrichten des Adapters in einer sinnvollen Reihenfolge. Du kannst jederzeit in die Experten‑Tabs wechseln."
         },
         "_wizard_step1": {
           "type": "panel",
-          "label": "Step 1: Enable modules",
+          "label": "Schritt 1: Module aktivieren",
           "collapsable": true,
           "items": {
             "wizard.step1.info": {
@@ -38,9 +38,81 @@
             }
           }
         },
+        "_wizard_step_gc": {
+          "type": "panel",
+          "label": "Schritt 2: Netz & EVU (RLM / Nulleinspeisung)",
+          "collapsable": true,
+          "items": {
+            "wizard.stepGC.info": {
+              "type": "staticText",
+              "text": "Konfiguriere hier die gewerbetauglichen Netz-Constraints. Für RLM und Nulleinspeisung ist ein zuverlässiger Messpunkt am Netzanschluss erforderlich."
+            },
+            "enableGridConstraints": {
+              "type": "checkbox",
+              "label": "Netz-Constraints aktivieren"
+            },
+            "gridConstraints.gridPowerId": {
+              "type": "state",
+              "label": "Netzleistung am Netzpunkt (W) – Object ID",
+              "sm": "grid",
+              "hidden": "!((data.enableGridConstraints) ?? data['enableGridConstraints'])",
+              "validator": "(() => {const en=(((data.enableGridConstraints) ?? data['enableGridConstraints'])===true); if(!en) return true; const id=((data.gridConstraints && data.gridConstraints.gridPowerId) ?? data['gridConstraints.gridPowerId']); return !!id;})()"
+            },
+            "gridConstraints.rlmEnabled": {
+              "type": "checkbox",
+              "label": "RLM aktivieren (15‑Minuten Ø)",
+              "hidden": "!((data.enableGridConstraints) ?? data['enableGridConstraints'])"
+            },
+            "gridConstraints.rlmLimitW": {
+              "type": "number",
+              "label": "RLM Vertragswert (W)",
+              "min": 0,
+              "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.rlmEnabled) ?? data['gridConstraints.rlmEnabled'])===true))",
+              "validator": "(() => {const en=(((data.enableGridConstraints) ?? data['enableGridConstraints'])===true); const rlm=((data.gridConstraints && data.gridConstraints.rlmEnabled) ?? data['gridConstraints.rlmEnabled']); if(!(en && rlm)) return true; const v=((data.gridConstraints && data.gridConstraints.rlmLimitW) ?? data['gridConstraints.rlmLimitW']); return Number(v)>0;})()"
+            },
+            "gridConstraints.zeroExportEnabled": {
+              "type": "checkbox",
+              "label": "Nulleinspeisung aktivieren (hart 0)",
+              "hidden": "!((data.enableGridConstraints) ?? data['enableGridConstraints'])"
+            },
+            "gridConstraints.pvCurtailMode": {
+              "type": "select",
+              "label": "Curtailment‑Modus",
+              "options": [
+                {
+                  "label": "Auto",
+                  "value": "auto"
+                },
+                {
+                  "label": "Feed‑In Limit (W)",
+                  "value": "feedInLimitW"
+                },
+                {
+                  "label": "PV‑Limit (W)",
+                  "value": "pvLimitW"
+                },
+                {
+                  "label": "PV‑Limit (%)",
+                  "value": "pvLimitPct"
+                },
+                {
+                  "label": "Aus",
+                  "value": "off"
+                }
+              ],
+              "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+            },
+            "gridConstraints.pvFeedInLimitWId": {
+              "type": "state",
+              "label": "Feed‑In Limit (W) – Object ID",
+              "sm": "grid",
+              "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+            }
+          }
+        },
         "_wizard_step2": {
           "type": "panel",
-          "label": "Step 2: Peak Shaving basics",
+          "label": "Schritt 3: Peak Shaving Grundkonfiguration",
           "collapsable": true,
           "items": {
             "wizard.step2.info": {
@@ -76,7 +148,7 @@
         },
         "_wizard_step3": {
           "type": "panel",
-          "label": "Step 3: Add actuators for Peak Shaving",
+          "label": "Schritt 4: Aktoren (Peak Shaving)",
           "collapsable": true,
           "items": {
             "wizard.step3.info": {
@@ -248,7 +320,7 @@
         },
         "_wizard_step4": {
           "type": "panel",
-          "label": "Step 4: Charging Management (budget + wallboxes)",
+          "label": "Schritt 5: Wallboxen / Ladepark",
           "collapsable": true,
           "items": {
             "wizard.step4.info": {
@@ -572,7 +644,7 @@
         },
         "_wizard_step5": {
           "type": "panel",
-          "label": "Step 5: Multi-Use (budgets + consumers)",
+          "label": "Schritt 6: Multi‑Use Verbraucher",
           "collapsable": true,
           "items": {
             "wizard.step5.info": {
@@ -732,17 +804,22 @@
         },
         "wizard.outro": {
           "type": "staticText",
-          "text": "Done. Save the configuration and restart the adapter instance. If something does not work as expected, enable diagnostics in the General tab."
+          "text": "Fertig. Tipp: Prüfe im Objektbaum die Diagnose‑States (peakShaving.*, speicher.regelung.*, chargingManagement.*, gridConstraints.*), um das Verhalten live zu sehen."
         }
       }
     },
     "tab_general": {
       "type": "panel",
-      "label": "General",
+      "label": "Allgemein",
       "items": {
         "enablePeakShaving": {
           "type": "checkbox",
           "label": "Enable Peak Shaving"
+        },
+        "enableGridConstraints": {
+          "type": "checkbox",
+          "label": "Netz-Constraints aktivieren (RLM / Nulleinspeisung)",
+          "tooltip": "Aktiviert die Funktionen für RLM-Lastspitzenkappung (15-Minuten) und Nulleinspeisung."
         },
         "enableChargingManagement": {
           "type": "checkbox",
@@ -866,9 +943,209 @@
         }
       }
     },
+    "tab_grid": {
+      "type": "panel",
+      "label": "Netz & EVU",
+      "items": {
+        "_grid_disabled_info": {
+          "type": "staticText",
+          "text": "Dieses Modul ist deaktiviert. Bitte unter 'Allgemein' → 'Netz-Constraints aktivieren' einschalten, wenn du RLM/Nulleinspeisung nutzen möchtest.",
+          "hidden": "((data.enableGridConstraints) ?? data['enableGridConstraints'])"
+        },
+        "grid.info": {
+          "type": "staticText",
+          "text": "Hier konfigurierst du gewerbetaugliche Netz-Constraints: (1) Anschlusswert/Netzbezug (über Peak Shaving), (2) RLM 15-Minuten-Lastspitzenkappung, (3) Nulleinspeisung (hart 0) inkl. PV/WR-Abregelung.",
+          "hidden": "!((data.enableGridConstraints) ?? data['enableGridConstraints'])"
+        },
+        "divider_grid_dp": {
+          "type": "divider",
+          "label": "Messpunkt Netz (Pflicht)"
+        },
+        "gridConstraints.gridPowerId": {
+          "type": "state",
+          "label": "Netzleistung am Netzpunkt (W) – Object ID",
+          "sm": "grid",
+          "help": "Bezug positiv / Einspeisung negativ. Beispiel: smartmeter.0.power",
+          "validator": "(() => {const en=(((data.enableGridConstraints) ?? data['enableGridConstraints'])===true);if(!en) return true; const id=((data.gridConstraints && data.gridConstraints.gridPowerId) ?? data['gridConstraints.gridPowerId']); return !!id;})()",
+          "hidden": "!((data.enableGridConstraints) ?? data['enableGridConstraints'])"
+        },
+        "divider_rlm": {
+          "type": "divider",
+          "label": "RLM – 15‑Minuten‑Lastspitzenkappung"
+        },
+        "gridConstraints.rlmEnabled": {
+          "type": "checkbox",
+          "label": "RLM aktivieren (15‑Minuten Ø)",
+          "help": "Begrenzt den Netzbezug so, dass der 15‑Minuten‑Durchschnitt unter dem Vertragswert bleibt.",
+          "hidden": "!((data.enableGridConstraints) ?? data['enableGridConstraints'])"
+        },
+        "_grid_warn_rlm_needs_peak": {
+          "type": "staticText",
+          "text": "⚠ Hinweis: Für eine wirksame RLM‑Kappung sollte Peak Shaving aktiviert sein (damit steuerbare Lasten/Wallboxen/Verbraucher wirklich reduziert werden).",
+          "hidden": "(() => {const gc=((data.enableGridConstraints) ?? data['enableGridConstraints']); const rlm=((data.gridConstraints && data.gridConstraints.rlmEnabled) ?? data['gridConstraints.rlmEnabled']); const ps=((data.enablePeakShaving) ?? data['enablePeakShaving']); return !(gc && rlm && !ps);})()"
+        },
+        "gridConstraints.rlmLimitW": {
+          "type": "number",
+          "label": "RLM Vertragswert (W)",
+          "help": "Beispiel: 40000 (= 40 kW).",
+          "min": 0,
+          "validator": "(() => {const gc=((data.enableGridConstraints) ?? data['enableGridConstraints']); const rlm=((data.gridConstraints && data.gridConstraints.rlmEnabled) ?? data['gridConstraints.rlmEnabled']); if(!(gc && rlm)) return true; const v=((data.gridConstraints && data.gridConstraints.rlmLimitW) ?? data['gridConstraints.rlmLimitW']); return Number(v)>0;})()",
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.rlmEnabled) ?? data['gridConstraints.rlmEnabled'])===true))"
+        },
+        "gridConstraints.rlmSafetyMarginW": {
+          "type": "number",
+          "label": "Sicherheitsabstand (W)",
+          "help": "Optionaler Abstand unter dem Vertragswert (z.B. 500–2000 W) gegen Messrauschen/Verzögerung.",
+          "min": 0,
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.rlmEnabled) ?? data['gridConstraints.rlmEnabled'])===true))"
+        },
+        "gridConstraints.rlmAligned": {
+          "type": "checkbox",
+          "label": "An Viertelstunden ausrichten (00/15/30/45)",
+          "help": "Typisch für RLM. Wenn deaktiviert, startet das 15‑Minuten‑Fenster beim Adapterstart (rolling).",
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.rlmEnabled) ?? data['gridConstraints.rlmEnabled'])===true))"
+        },
+        "divider_zero": {
+          "type": "divider",
+          "label": "Nulleinspeisung (hart 0)"
+        },
+        "gridConstraints.zeroExportEnabled": {
+          "type": "checkbox",
+          "label": "Nulleinspeisung aktivieren (Export = 0 W)",
+          "help": "Hält die Einspeisung bei 0 W. Für echte Garantie ist eine PV/WR‑Abregelung (Curtailment) empfohlen.",
+          "hidden": "!((data.enableGridConstraints) ?? data['enableGridConstraints'])"
+        },
+        "gridConstraints.zeroExportBiasW": {
+          "type": "number",
+          "label": "Bezug‑Bias (W)",
+          "help": "Empfohlen: 30–150 W. Der Adapter regelt bei Export auf einen kleinen Netzbezug, um negative Peaks durch Messrauschen zu vermeiden.",
+          "min": 0,
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "gridConstraints.zeroExportDeadbandW": {
+          "type": "number",
+          "label": "Totband (W)",
+          "help": "Bereich um 0, in dem nicht nachgeregelt wird (gegen Flattern). Empfohlen: 20–80 W.",
+          "min": 0,
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "divider_curtail": {
+          "type": "divider",
+          "label": "PV/WR‑Abregelung (Curtailment)"
+        },
+        "gridConstraints.pvCurtailMode": {
+          "type": "select",
+          "label": "Curtailment‑Modus",
+          "options": [
+            {
+              "label": "Auto (beste verfügbare Option)",
+              "value": "auto"
+            },
+            {
+              "label": "Feed‑In Limit (W) – bevorzugt",
+              "value": "feedInLimitW"
+            },
+            {
+              "label": "PV‑Limit (W)",
+              "value": "pvLimitW"
+            },
+            {
+              "label": "PV‑Limit (%)",
+              "value": "pvLimitPct"
+            },
+            {
+              "label": "Aus",
+              "value": "off"
+            }
+          ],
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "_grid_warn_no_curtail": {
+          "type": "staticText",
+          "text": "⚠ Warnung: Ohne Curtailment‑Datapunkt kann 'hart 0 W' nicht garantiert werden (z.B. wenn Speicher voll und keine flexible Last verfügbar ist).",
+          "hidden": "(() => {\n  const gc = (((data.enableGridConstraints) ?? data['enableGridConstraints']) === true);\n  const ze = (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled']) === true);\n  if (!(gc && ze)) return true; // hide if not relevant\n  const mode = ((data.gridConstraints && data.gridConstraints.pvCurtailMode) ?? data['gridConstraints.pvCurtailMode']) || 'auto';\n  const hasFeed = !!((data.gridConstraints && data.gridConstraints.pvFeedInLimitWId) ?? data['gridConstraints.pvFeedInLimitWId']);\n  const hasW = !!((data.gridConstraints && data.gridConstraints.pvLimitWId) ?? data['gridConstraints.pvLimitWId']);\n  const hasPct = !!((data.gridConstraints && data.gridConstraints.pvLimitPctId) ?? data['gridConstraints.pvLimitPctId']);\n  let hasControl = false;\n  if (mode === 'feedInLimitW') hasControl = hasFeed;\n  else if (mode === 'pvLimitW') hasControl = hasW;\n  else if (mode === 'pvLimitPct') hasControl = hasPct;\n  else if (mode === 'off') hasControl = false;\n  else hasControl = (hasFeed || hasW || hasPct); // auto\n  return hasControl;\n})()"
+        },
+        "gridConstraints.pvFeedInLimitWId": {
+          "type": "state",
+          "label": "Feed‑In Limit (W) – Object ID",
+          "sm": "grid",
+          "help": "Beste Option: WR/EMS regelt Einspeisung intern auf 0 W, ohne unnötiges PV‑Abwerfen.",
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "gridConstraints.pvLimitWId": {
+          "type": "state",
+          "label": "PV‑Limit (W) – Object ID",
+          "sm": "grid",
+          "help": "Begrenzt die PV‑Leistung (W). Wird automatisch nachgeregelt, um Export zu vermeiden.",
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "gridConstraints.pvLimitPctId": {
+          "type": "state",
+          "label": "PV‑Limit (%) – Object ID",
+          "sm": "grid",
+          "help": "Begrenzt die PV‑Leistung in %. Erfordert PV‑Nennleistung (W) für die Umrechnung.",
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "gridConstraints.pvRatedPowerW": {
+          "type": "number",
+          "label": "PV‑Nennleistung (W) – optional",
+          "help": "Nur nötig für PV‑Limit (%) wenn kein Nennleistungs‑Datapunkt vorhanden ist. Beispiel: 30000 (= 30 kWp).",
+          "min": 0,
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "gridConstraints.pvRatedPowerWId": {
+          "type": "state",
+          "label": "PV‑Nennleistung (W) – Object ID (optional)",
+          "sm": "grid",
+          "help": "Wenn dein System die installierte PV‑Nennleistung als Datapunkt liefert, kannst du sie hier mappen.",
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "divider_curtail_tuning": {
+          "type": "divider",
+          "label": "Curtailment Feintuning (Expert)",
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "gridConstraints.pvCurtailFastTripExportW": {
+          "type": "number",
+          "label": "FastTrip Export‑Schwelle (W)",
+          "help": "Ab dieser Einspeisung wird schneller abgeregelt (z.B. 300–1000 W).",
+          "min": 0,
+          "expertMode": true,
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "gridConstraints.pvCurtailMaxDeltaWPerTick": {
+          "type": "number",
+          "label": "Max. Änderung pro Tick (W)",
+          "help": "Rampenbegrenzung für PV‑Limit (W).",
+          "min": 0,
+          "expertMode": true,
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "gridConstraints.pvCurtailMaxDeltaPctPerTick": {
+          "type": "number",
+          "label": "Max. Änderung pro Tick (%)",
+          "help": "Rampenbegrenzung für PV‑Limit (%).",
+          "min": 0,
+          "expertMode": true,
+          "hidden": "!(((data.enableGridConstraints) ?? data['enableGridConstraints']) && (((data.gridConstraints && data.gridConstraints.zeroExportEnabled) ?? data['gridConstraints.zeroExportEnabled'])===true))"
+        },
+        "divider_misc": {
+          "type": "divider",
+          "label": "Allgemein"
+        },
+        "gridConstraints.staleTimeoutSec": {
+          "type": "number",
+          "label": "Stale Timeout (s)",
+          "help": "Wenn Messwerte älter als diese Zeit sind, schaltet der Adapter in einen sicheren Zustand (Failsafe).",
+          "min": 1,
+          "expertMode": true,
+          "hidden": "!((data.enableGridConstraints) ?? data['enableGridConstraints'])"
+        }
+      }
+    },
     "tab_peak": {
       "type": "panel",
-      "label": "Peak Shaving",
+      "label": "Lastspitzenkappung",
       "items": {
         "_peak_disabled_info": {
           "type": "staticText",
@@ -1307,7 +1584,7 @@
     },
     "tab_charging": {
       "type": "panel",
-      "label": "Charging Management",
+      "label": "Lademanagement",
       "items": {
         "_charging_disabled_info": {
           "type": "staticText",
@@ -2040,7 +2317,7 @@
     },
     "tab_multiuse": {
       "type": "panel",
-      "label": "Multi-Use",
+      "label": "Multi‑Use",
       "items": {
         "_multiuse_disabled_info": {
           "type": "staticText",
@@ -2278,7 +2555,7 @@
     },
     "tab_datapoints": {
       "type": "panel",
-      "label": "Datapoints",
+      "label": "Datenpunkte",
       "items": {
         "divider_dps": {
           "type": "divider",

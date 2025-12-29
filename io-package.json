@@ -198,6 +198,27 @@
             "instance": "nexowatt-vis.0",
             "rfidWhitelistId": "",
             "priceCurrentId": ""
+        },
+        "enableGridConstraints": false,
+        "gridConstraints": {
+            "gridPowerId": "",
+            "staleTimeoutSec": 15,
+            "zeroExportEnabled": false,
+            "zeroExportBiasW": 80,
+            "zeroExportDeadbandW": 50,
+            "pvCurtailMode": "auto",
+            "pvFeedInLimitWId": "",
+            "pvLimitWId": "",
+            "pvLimitPctId": "",
+            "pvRatedPowerW": 0,
+            "pvRatedPowerWId": "",
+            "pvCurtailMaxDeltaWPerTick": 8000,
+            "pvCurtailMaxDeltaPctPerTick": 10,
+            "pvCurtailFastTripExportW": 500,
+            "rlmEnabled": false,
+            "rlmLimitW": 0,
+            "rlmSafetyMarginW": 0,
+            "rlmAligned": true
         }
     },
     "objects": [],
