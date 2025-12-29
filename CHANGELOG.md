@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.41 (2025-12-29)
+- Admin: Speichern auch bei Warnungen möglich (Validierungen blockieren nicht mehr).
+- Charging-Management: optionale State-IDs für Netzleistung (cm.gridPowerW) und PV-Überschuss (cm.pvSurplusW); Stale-Check berücksichtigt auch grid.powerW.
+- Multi-Use: Verbraucher können per State-ID (Sollstrom/Sollleistung/Enable) konfiguriert werden; Keys werden automatisch aus dem Verbraucher-Key abgeleitet (mu.<key>.setA/setW/enable).
+- Multi-Use: Budget-Quellen per Modus (VIS/PV-Überschuss/Datapoint) + optionale externe harte Grenze per State-ID.
+
 ## 0.0.40 (2025-12-29)
 - MU8.1: Admin: VIS integration fields (VIS instance, RFID whitelist, optional current price) with objectId picker + defaults.
 - Tarif-VIS module now uses the configured VIS instance for reading settings.

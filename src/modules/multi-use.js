@@ -142,6 +142,9 @@ class MultiUseModule extends BaseModule {
                 type: normalizeType(r.type || 'load'),
                 priority: num(r.priority, 100),
                 controlBasis: normalizeControlBasis(r.controlBasis || 'auto'),
+                setAId: String(r.setAId || r.setCurrentAId || '').trim(),
+                setWId: String(r.setWId || r.setPowerWId || '').trim(),
+                enableId: String(r.enableId || '').trim(),
                 setAKey: String(r.setAKey || '').trim(),
                 setWKey: String(r.setWKey || '').trim(),
                 enableKey: String(r.enableKey || '').trim(),
@@ -211,6 +214,44 @@ class MultiUseModule extends BaseModule {
         if (!this._isEnabled()) return;
 
         this._loadConsumersFromConfig();
+
+        // UX: Allow configuring consumers by State-ID (objectId) instead of manual datapoint keys.
+        // We derive stable internal keys from the consumer id and upsert them into the datapoint registry.
+        for (const c of this._consumers) {
+            const baseKey = `mu.${c.id}`;
+            try {
+                if (c.setWId && !c.setWKey) {
+                    await this.dp.upsert({ key: `${baseKey}.setW`, objectId: c.setWId, dataType: 'number', direction: 'out', unit: 'W' });
+                    c.setWKey = `${baseKey}.setW`;
+                }
+                if (c.setAId && !c.setAKey) {
+                    await this.dp.upsert({ key: `${baseKey}.setA`, objectId: c.setAId, dataType: 'number', direction: 'out', unit: 'A' });
+                    c.setAKey = `${baseKey}.setA`;
+                }
+                if (c.enableId && !c.enableKey) {
+                    await this.dp.upsert({ key: `${baseKey}.enable`, objectId: c.enableId, dataType: 'boolean', direction: 'out', unit: '' });
+                    c.enableKey = `${baseKey}.enable`;
+                }
+            } catch (e) {
+                this.adapter.log.warn(`[multiUse] datapoint upsert failed for consumer '${c.key}': ${e?.message || e}`);
+            }
+        }
+
+        // Optional budget datapoints via State-ID (to avoid using the global datapoints table)
+        const cfg = this._getCfg();
+        try {
+            if (cfg && cfg.externalLimitWId && !cfg.externalLimitWKey) {
+                await this.dp.upsert({ key: 'mu.externalLimitW', objectId: cfg.externalLimitWId, dataType: 'number', direction: 'in', unit: 'W' });
+            }
+            if (cfg && cfg.tariffBudgetWId && !cfg.tariffBudgetWKey) {
+                await this.dp.upsert({ key: 'mu.tariffBudgetW', objectId: cfg.tariffBudgetWId, dataType: 'number', direction: 'in', unit: 'W' });
+            }
+            if (cfg && cfg.pvBudgetWId && !cfg.pvBudgetWKey) {
+                await this.dp.upsert({ key: 'mu.pvBudgetW', objectId: cfg.pvBudgetWId, dataType: 'number', direction: 'in', unit: 'W' });
+            }
+        } catch (e) {
+            this.adapter.log.warn(`[multiUse] budget datapoint upsert failed: ${e?.message || e}`);
+        }
 
         await this.adapter.setObjectNotExistsAsync('multiUse', {
             type: 'channel',
@@ -436,8 +477,23 @@ class MultiUseModule extends BaseModule {
         let requestW = 0;
         let budgetSource = 'NONE';
 
-        const tariffKey = String(cfg.tariffBudgetWKey || '').trim();
-        const pvKey = String(cfg.pvBudgetWKey || '').trim();
+        // Budget sources can be selected by mode (VIS / PV-Surplus / datapoint) or by explicit key (expert).
+        let tariffKey = String(cfg.tariffBudgetWKey || '').trim();
+        let pvKey = String(cfg.pvBudgetWKey || '').trim();
+
+        if (!tariffKey) {
+            const mode = String(cfg.tariffBudgetMode || 'vis').trim().toLowerCase();
+            if (mode === 'vis' || mode === 'tarif' || mode === 'tariff') tariffKey = 'cm.tariffBudgetW';
+            else if (mode === 'dp' || mode === 'datapoint') tariffKey = 'mu.tariffBudgetW';
+            else tariffKey = '';
+        }
+
+        if (!pvKey) {
+            const mode = String(cfg.pvBudgetMode || 'surplus').trim().toLowerCase();
+            if (mode === 'surplus' || mode === 'pv' || mode === 'pvsurplus') pvKey = 'cm.pvSurplusW';
+            else if (mode === 'dp' || mode === 'datapoint') pvKey = 'mu.pvBudgetW';
+            else pvKey = '';
+        }
 
         if (tariffKey && dp && typeof dp.getNumberFresh === 'function') {
             const v = dp.getNumberFresh(tariffKey, staleTimeoutMs, null);
@@ -480,7 +536,8 @@ class MultiUseModule extends BaseModule {
         }
 
         // External limit cap (strict: if configured but stale/invalid => failsafe)
-        const externalKey = String(cfg.externalLimitWKey || '').trim();
+        let externalKey = String(cfg.externalLimitWKey || '').trim();
+        if (!externalKey && cfg.externalLimitWId) externalKey = 'mu.externalLimitW';
         if (externalKey && dp && typeof dp.isStale === 'function' && typeof dp.getNumberFresh === 'function') {
             const stale = dp.isStale(externalKey, staleTimeoutMs);
             if (stale) {

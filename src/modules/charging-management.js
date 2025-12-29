@@ -231,6 +231,9 @@ class ChargingManagementModule extends BaseModule {
         const budgetMode = String(cfg.totalBudgetMode || 'unlimited'); // unlimited | static | fromPeakShaving | fromDatapoint
         const staticBudgetW = clamp(num(cfg.staticMaxChargingPowerW, 0), 0, 1e12);
         const budgetPowerId = String(cfg.budgetPowerId || '').trim();
+        // Optional: provide grid power / PV surplus as explicit datapoints (avoids global Datapoints tab)
+        const gridPowerId = String(cfg.gridPowerId || '').trim();
+        const pvSurplusPowerId = String(cfg.pvSurplusPowerId || '').trim();
         const pauseWhenPeakShavingActive = cfg.pauseWhenPeakShavingActive !== false; // default true
         const pauseBehavior = String(cfg.pauseBehavior || 'rampDownToZero'); // rampDownToZero | followPeakBudget
 
@@ -246,6 +249,12 @@ class ChargingManagementModule extends BaseModule {
 
         if (budgetPowerId && this.dp) {
             await this.dp.upsert({ key: 'cm.budgetPowerW', objectId: budgetPowerId, dataType: 'number', direction: 'in', unit: 'W' });
+        }
+        if (gridPowerId && this.dp) {
+            await this.dp.upsert({ key: 'cm.gridPowerW', objectId: gridPowerId, dataType: 'number', direction: 'in', unit: 'W' });
+        }
+        if (pvSurplusPowerId && this.dp) {
+            await this.dp.upsert({ key: 'cm.pvSurplusW', objectId: pvSurplusPowerId, dataType: 'number', direction: 'in', unit: 'W' });
         }
 
         // Measurements and object mapping
@@ -664,7 +673,7 @@ if (components.length) {
         if (!this.dp) {
             staleMeter = true; // cannot validate inputs without DP registry
         } else {
-            const gridKeys = ['cm.gridPowerW', 'ps.gridPowerW'];
+            const gridKeys = ['cm.gridPowerW', 'grid.powerW', 'ps.gridPowerW'];
             const configuredGridKeys = gridKeys.filter(k => !!this.dp.getEntry(k));
 
             // Grid metering is required for safe operation

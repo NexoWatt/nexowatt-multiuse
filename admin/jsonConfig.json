@@ -128,7 +128,7 @@
               "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
               "validator": "!(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true) || !!((data.peakShaving && data.peakShaving.gridPointPowerId) ?? data['peakShaving.gridPointPowerId'])",
               "validatorErrorText": "Peak Shaving: Please select the grid power state (W).",
-              "validatorNoSaveOnError": true
+              "validatorNoSaveOnError": false
             },
             "peakShaving.maxPowerW": {
               "type": "number",
@@ -136,7 +136,7 @@
               "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
               "validator": "(() => {const en=(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true);if(!en) return true;const mode=(((data.peakShaving && data.peakShaving.mode) ?? data['peakShaving.mode']) ?? 'static');if(mode!=='static') return true;const v=((data.peakShaving && data.peakShaving.maxPowerW) ?? data['peakShaving.maxPowerW']);return Number(v)>0;})()",
               "validatorErrorText": "Peak Shaving: In static mode please set Max power (W) > 0.",
-              "validatorNoSaveOnError": true
+              "validatorNoSaveOnError": false
             },
             "peakShaving.safetyMarginW": {
               "type": "number",
@@ -220,7 +220,7 @@
                     }
                   ],
                   "attr": "mode",
-                  "label": "Mode",
+                  "label": "Modus",
                   "xs": 12,
                   "sm": 6,
                   "md": 4
@@ -329,7 +329,7 @@
             },
             "chargingManagement.totalBudgetMode": {
               "type": "select",
-              "label": "Total budget mode",
+              "label": "Gesamtbudget-Modus",
               "options": [
                 {
                   "label": "unlimited",
@@ -357,17 +357,17 @@
             },
             "chargingManagement.staticMaxChargingPowerW": {
               "type": "number",
-              "label": "Static max charging power (W)",
+              "label": "Statisches Max. Ladebudget (W)",
               "min": 0,
               "max": 1000000,
               "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (((((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode'])) !== 'static'))",
               "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const mode=(((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode']) ?? 'unlimited');if(mode!=='static') return true;const v=((data.chargingManagement && data.chargingManagement.staticMaxChargingPowerW) ?? data['chargingManagement.staticMaxChargingPowerW']);return Number(v)>0;})()",
               "validatorErrorText": "Charging: In static budget mode please set Static max charging power (W) > 0.",
-              "validatorNoSaveOnError": true
+              "validatorNoSaveOnError": false
             },
             "chargingManagement.budgetPowerId": {
               "type": "objectId",
-              "label": "Budget power (W) - State ID (for fromDatapoint)",
+              "label": "Budget (W) - State-ID (für Datapoint)",
               "help": "If total budget mode is 'fromDatapoint', this state provides the budget in W.",
               "types": [
                 "state"
@@ -375,7 +375,7 @@
               "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (((((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode'])) !== 'fromDatapoint'))",
               "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const mode=(((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode']) ?? 'unlimited');if(mode!=='fromDatapoint') return true;return !!((data.chargingManagement && data.chargingManagement.budgetPowerId) ?? data['chargingManagement.budgetPowerId']);})()",
               "validatorErrorText": "Charging: In fromDatapoint budget mode please select Budget power (W) state.",
-              "validatorNoSaveOnError": true
+              "validatorNoSaveOnError": false
             },
             "chargingManagement.wallboxes": {
               "type": "accordion",
@@ -384,7 +384,7 @@
                 {
                   "type": "text",
                   "attr": "key",
-                  "label": "Key (unique)",
+                  "label": "Schlüssel (eindeutig)",
                   "xs": 12,
                   "sm": 6,
                   "md": 4
@@ -441,7 +441,7 @@
                   ],
                   "help": "auto: AC uses setCurrentA if present else setPowerW; DC uses setPowerW.",
                   "attr": "controlBasis",
-                  "label": "Control basis",
+                  "label": "Regelgröße",
                   "xs": 12,
                   "sm": 6,
                   "md": 4
@@ -653,34 +653,78 @@
             },
             "multiUse.externalLimitWKey": {
               "type": "text",
-              "label": "External limit DP key (W)",
+              "label": "Externe Limitierung Key (Experte) (W)",
               "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
             },
-            "multiUse.tariffBudgetWKey": {
+            "multiUse.tariffBudgetMode": {
+          "type": "select",
+          "label": "Tarif-Budget Quelle",
+          "options": [
+            { "label": "VIS/Tarif (cm.tariffBudgetW)", "value": "vis" },
+            { "label": "Datapoint (State-ID)", "value": "dp" },
+            { "label": "keine", "value": "none" }
+          ],
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+        "multiUse.tariffBudgetWId": {
+          "type": "objectId",
+          "label": "Tarif-Budget (W) - State-ID",
+          "help": "Nur wenn Tarif-Budget Quelle = Datapoint. Wird intern als Key mu.tariffBudgetW registriert.",
+          "expertMode": true,
+          "types": ["state"],
+          "hidden": "(!((data.enableMultiUse) ?? data['enableMultiUse'])) || (((((data.multiUse && data.multiUse.tariffBudgetMode) ?? data['multiUse.tariffBudgetMode']) ?? 'vis')) !== 'dp')"
+        },
+        "multiUse.pvBudgetMode": {
+          "type": "select",
+          "label": "PV-Budget Quelle",
+          "options": [
+            { "label": "PV-Überschuss (cm.pvSurplusW)", "value": "surplus" },
+            { "label": "Datapoint (State-ID)", "value": "dp" },
+            { "label": "keine", "value": "none" }
+          ],
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+        "multiUse.pvBudgetWId": {
+          "type": "objectId",
+          "label": "PV-Budget (W) - State-ID",
+          "help": "Nur wenn PV-Budget Quelle = Datapoint. Wird intern als Key mu.pvBudgetW registriert.",
+          "types": ["state"],
+          "hidden": "(!((data.enableMultiUse) ?? data['enableMultiUse'])) || (((((data.multiUse && data.multiUse.pvBudgetMode) ?? data['multiUse.pvBudgetMode']) ?? 'surplus')) !== 'dp')"
+        },
+        "multiUse.externalLimitWId": {
+          "type": "objectId",
+          "label": "Externe harte Leistungsgrenze (W) - State-ID (optional)",
+          "help": "Wenn gesetzt, begrenzt Multi-Use das Budget strikt. Bei Stale/Invalid => Failsafe (0 W).",
+          "types": ["state"],
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+
+        "multiUse.tariffBudgetWKey": {
               "type": "text",
-              "label": "Tariff budget DP key (W)",
+              "label": "Tarif-Budget Key (Experte) (W)",
               "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
             },
             "multiUse.pvBudgetWKey": {
               "type": "text",
-              "label": "PV budget DP key (W)",
+              "label": "PV-Budget Key (W) (Experte)",
+              "expertMode": true,
               "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
             },
             "multiUse.comfortBudgetW": {
               "type": "number",
-              "label": "Comfort budget (W)",
+              "label": "Komfort-Budget (W)",
               "min": 0,
               "max": 2000000,
               "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
             },
             "multiUse.consumers": {
               "type": "accordion",
-              "label": "Consumers (Multi-Use)",
+              "label": "Verbraucher (Multi-Use)",
               "items": [
                 {
                   "type": "text",
                   "attr": "key",
-                  "label": "Key (unique)",
+                  "label": "Schlüssel (eindeutig)",
                   "xs": 12,
                   "sm": 6,
                   "md": 4
@@ -706,7 +750,7 @@
                       "value": "load"
                     }
                   ],
-                  "label": "Type",
+                  "label": "Typ",
                   "xs": 12,
                   "sm": 6,
                   "md": 4
@@ -717,7 +761,7 @@
                   "min": 0,
                   "max": 100000,
                   "step": 1,
-                  "label": "Priority",
+                  "label": "Priorität (1=hoch)",
                   "xs": 12,
                   "sm": 6,
                   "md": 4
@@ -743,7 +787,37 @@
                       "value": "none"
                     }
                   ],
-                  "label": "Control basis",
+                  "label": "Regelgröße",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                                {
+                  "type": "objectId",
+                  "attr": "setAId",
+                  "label": "Soll-Strom (A) - State-ID",
+                  "help": "Optional. Wenn gesetzt, wird intern automatisch ein Key erzeugt (mu.<key>.setA).",
+                  "types": ["state"],
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "objectId",
+                  "attr": "setWId",
+                  "label": "Soll-Leistung (W) - State-ID",
+                  "help": "Optional. Wenn gesetzt, wird intern automatisch ein Key erzeugt (mu.<key>.setW).",
+                  "types": ["state"],
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "objectId",
+                  "attr": "enableId",
+                  "label": "Enable/Disable - State-ID",
+                  "help": "Optional. Wenn gesetzt, wird intern automatisch ein Key erzeugt (mu.<key>.enable).",
+                  "types": ["state"],
                   "xs": 12,
                   "sm": 6,
                   "md": 4
@@ -751,7 +825,8 @@
                 {
                   "type": "text",
                   "attr": "setAKey",
-                  "label": "Setpoint (A) DP-Key",
+                  "expertMode": true,
+                  "label": "Soll-Strom Key (Experte)",
                   "xs": 12,
                   "sm": 6,
                   "md": 4
@@ -759,7 +834,8 @@
                 {
                   "type": "text",
                   "attr": "setWKey",
-                  "label": "Setpoint (W) DP-Key",
+                  "expertMode": true,
+                  "label": "Soll-Leistung Key (Experte)",
                   "xs": 12,
                   "sm": 6,
                   "md": 4
@@ -767,7 +843,8 @@
                 {
                   "type": "text",
                   "attr": "enableKey",
-                  "label": "Enable DP-Key",
+                  "expertMode": true,
+                  "label": "Enable-Key (Experte)",
                   "xs": 12,
                   "sm": 6,
                   "md": 4
@@ -796,7 +873,7 @@
               "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
               "titleAttr": "key",
               "clone": "key",
-              "validator": "(() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAKey || !!c.setWKey);})()",
+              "validator": "(() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAId || !!c.setWId || !!c.setAKey || !!c.setWKey);})()",
               "validatorErrorText": "Multi-Use consumers: Add at least one consumer with unique Key and a setpoint DP key (A or W).",
               "validatorNoSaveOnError": false
             }
@@ -855,6 +932,7 @@
           "type": "text",
           "label": "NexoWatt VIS instance",
           "help": "ioBroker instance name of the NexoWatt VIS adapter (e.g. nexowatt-vis.0). Used to read VIS settings under <instance>.settings.*.",
+          "expertMode": true,
           "expertMode": true
         },
         "vis.rfidWhitelistId": {
@@ -1173,7 +1251,7 @@
         },
         "peakShaving.mode": {
           "type": "select",
-          "label": "Mode",
+          "label": "Modus",
           "options": [
             {
               "label": "static",
@@ -1195,11 +1273,11 @@
           "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
           "validator": "!(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true) || !!((data.peakShaving && data.peakShaving.gridPointPowerId) ?? data['peakShaving.gridPointPowerId'])",
           "validatorErrorText": "Peak Shaving: Please select the grid power state (W).",
-          "validatorNoSaveOnError": true
+          "validatorNoSaveOnError": false
         },
         "peakShaving.staleTimeoutSec": {
           "type": "number",
-          "label": "Meter stale timeout (s)",
+          "label": "Messwert-Timeout (s)",
           "help": "If meter values are older than this, Peak Shaving enters failsafe (STALE_METER) and will not release.",
           "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])"
         },
@@ -1209,7 +1287,7 @@
           "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
           "validator": "(() => {const en=(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true);if(!en) return true;const mode=(((data.peakShaving && data.peakShaving.mode) ?? data['peakShaving.mode']) ?? 'static');if(mode!=='static') return true;const v=((data.peakShaving && data.peakShaving.maxPowerW) ?? data['peakShaving.maxPowerW']);return Number(v)>0;})()",
           "validatorErrorText": "Peak Shaving: In static mode please set Max power (W) > 0.",
-          "validatorNoSaveOnError": true
+          "validatorNoSaveOnError": false
         },
         "peakShaving.safetyMarginW": {
           "type": "number",
@@ -1274,7 +1352,7 @@
         },
         "peakShaving.voltageV": {
           "type": "number",
-          "label": "Voltage (V)",
+          "label": "Spannung (V)",
           "help": "Used to estimate required reduction from phase over-current.",
           "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
           "expertMode": true
@@ -1484,7 +1562,7 @@
                 }
               ],
               "attr": "mode",
-              "label": "Mode",
+              "label": "Modus",
               "xs": 12,
               "sm": 6,
               "md": 4
@@ -1603,7 +1681,7 @@
         },
         "chargingManagement.mode": {
           "type": "select",
-          "label": "Mode",
+          "label": "Modus",
           "options": [
             {
               "label": "off",
@@ -1622,23 +1700,38 @@
         },
         "chargingManagement.pvSurplusOnly": {
           "type": "checkbox",
-          "label": "PV surplus only",
+          "label": "Nur PV-Überschuss",
           "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
         },
+        "chargingManagement.gridPowerId": {
+          "type": "objectId",
+          "label": "Netzleistung (W) - State-ID (optional)",
+          "help": "Optional: Netz-/Zählerleistung. Wird für PV-Überschuss-Modus genutzt (Fallback: gridConstraints/PeakShaving).",
+          "types": ["state"],
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+        },
+        "chargingManagement.pvSurplusPowerId": {
+          "type": "objectId",
+          "label": "PV-Überschuss (W) - State-ID (optional)",
+          "help": "Optional: direkter PV-Überschuss in W. Wenn leer, wird PV-Überschuss aus Netzleistung abgeleitet (negativ = Einspeisung).",
+          "types": ["state"],
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+        },
+
         "chargingManagement.boostEnabled": {
           "type": "checkbox",
-          "label": "Boost enabled",
+          "label": "Boost aktiv",
           "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
           "expertMode": true
         },
         "divider_charging_budget": {
           "type": "divider",
-          "label": "Budget / Priorities",
+          "label": "Budget / Prioritäten",
           "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
         },
         "chargingManagement.totalBudgetMode": {
           "type": "select",
-          "label": "Total budget mode",
+          "label": "Gesamtbudget-Modus",
           "options": [
             {
               "label": "unlimited",
@@ -1666,17 +1759,17 @@
         },
         "chargingManagement.staticMaxChargingPowerW": {
           "type": "number",
-          "label": "Static max charging power (W)",
+          "label": "Statisches Max. Ladebudget (W)",
           "min": 0,
           "max": 1000000,
           "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (((((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode'])) !== 'static'))",
           "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const mode=(((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode']) ?? 'unlimited');if(mode!=='static') return true;const v=((data.chargingManagement && data.chargingManagement.staticMaxChargingPowerW) ?? data['chargingManagement.staticMaxChargingPowerW']);return Number(v)>0;})()",
           "validatorErrorText": "Charging: In static budget mode please set Static max charging power (W) > 0.",
-          "validatorNoSaveOnError": true
+          "validatorNoSaveOnError": false
         },
         "chargingManagement.budgetPowerId": {
           "type": "objectId",
-          "label": "Budget power (W) - State ID (for fromDatapoint)",
+          "label": "Budget (W) - State-ID (für Datapoint)",
           "help": "If total budget mode is 'fromDatapoint', this state provides the budget in W.",
           "types": [
             "state"
@@ -1684,17 +1777,17 @@
           "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (((((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode'])) !== 'fromDatapoint'))",
           "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const mode=(((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode']) ?? 'unlimited');if(mode!=='fromDatapoint') return true;return !!((data.chargingManagement && data.chargingManagement.budgetPowerId) ?? data['chargingManagement.budgetPowerId']);})()",
           "validatorErrorText": "Charging: In fromDatapoint budget mode please select Budget power (W) state.",
-          "validatorNoSaveOnError": true
+          "validatorNoSaveOnError": false
         },
         "chargingManagement.pauseWhenPeakShavingActive": {
           "type": "checkbox",
-          "label": "Pause charging management when Peak Shaving is active",
+          "label": "Lademanagement pausieren, wenn Lastspitzenkappung aktiv ist",
           "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (!(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true))",
           "expertMode": true
         },
         "chargingManagement.pauseBehavior": {
           "type": "select",
-          "label": "Pause behavior",
+          "label": "Pause-Verhalten",
           "options": [
             {
               "label": "rampDownToZero",
@@ -1711,14 +1804,14 @@
         },
         "chargingManagement.staleTimeoutSec": {
           "type": "number",
-          "label": "Meter stale timeout (s)",
+          "label": "Messwert-Timeout (s)",
           "help": "If meter/budget values are older than this, Charging Management forces safe targets (STALE_METER).",
           "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
           "expertMode": true
         },
         "chargingManagement.defaultPhases": {
           "type": "select",
-          "label": "Default phases",
+          "label": "Standard-Phasen",
           "options": [
             {
               "label": "1",
@@ -1733,13 +1826,13 @@
         },
         "chargingManagement.voltageV": {
           "type": "number",
-          "label": "Voltage (V)",
+          "label": "Spannung (V)",
           "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
           "expertMode": true
         },
         "chargingManagement.acMinPower3pW": {
           "type": "number",
-          "label": "AC 3p min power (W)",
+          "label": "AC 3p Mindestleistung (W)",
           "min": 0,
           "max": 1000000,
           "help": "Minimum target power for 3-phase AC wallboxes. Typical: 4200 W.",
@@ -1818,7 +1911,7 @@
             {
               "type": "text",
               "attr": "key",
-              "label": "Key (unique)",
+              "label": "Schlüssel (eindeutig)",
               "xs": 12,
               "sm": 6,
               "md": 4
@@ -1875,7 +1968,7 @@
               ],
               "help": "auto: AC uses setCurrentA if present else setPowerW; DC uses setPowerW.",
               "attr": "controlBasis",
-              "label": "Control basis",
+              "label": "Regelgröße",
               "xs": 12,
               "sm": 6,
               "md": 4
@@ -2331,7 +2424,7 @@
           "style": {
             "color": "#b00020"
           },
-          "hidden": "!(((data.enableMultiUse) ?? data['enableMultiUse']) === true) || (() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAKey || !!c.setWKey);})()",
+          "hidden": "!(((data.enableMultiUse) ?? data['enableMultiUse']) === true) || (() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAId || !!c.setWId || !!c.setAKey || !!c.setWKey);})()",
           "newLine": true
         },
         "divider_multiuse_budget": {
@@ -2341,7 +2434,7 @@
         },
         "multiUse.staleTimeoutSec": {
           "type": "number",
-          "label": "Meter stale timeout (s)",
+          "label": "Messwert-Timeout (s)",
           "min": 0,
           "max": 3600,
           "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
@@ -2349,7 +2442,7 @@
         },
         "multiUse.voltageV": {
           "type": "number",
-          "label": "Voltage (V)",
+          "label": "Spannung (V)",
           "min": 100,
           "max": 260,
           "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
@@ -2357,7 +2450,7 @@
         },
         "multiUse.defaultPhases": {
           "type": "select",
-          "label": "Default phases",
+          "label": "Standard-Phasen",
           "options": [
             {
               "label": "1",
@@ -2373,22 +2466,22 @@
         },
         "multiUse.externalLimitWKey": {
           "type": "text",
-          "label": "External limit DP key (W)",
+          "label": "Externe Limitierung Key (Experte) (W)",
           "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
         },
         "multiUse.tariffBudgetWKey": {
           "type": "text",
-          "label": "Tariff budget DP key (W)",
+          "label": "Tarif-Budget Key (Experte) (W)",
           "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
         },
         "multiUse.pvBudgetWKey": {
           "type": "text",
-          "label": "PV budget DP key (W)",
+          "label": "PV-Budget Key (W) (Experte)",
           "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
         },
         "multiUse.comfortBudgetW": {
           "type": "number",
-          "label": "Comfort budget (W)",
+          "label": "Komfort-Budget (W)",
           "min": 0,
           "max": 2000000,
           "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
@@ -2416,22 +2509,22 @@
         },
         "multiUse.reserveEnabled": {
           "type": "checkbox",
-          "label": "Reserve enabled",
+          "label": "Reserve aktiv",
           "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
         },
         "multiUse.reserveMinW": {
           "type": "number",
-          "label": "Reserve minimum (W)",
+          "label": "Reserve Minimum (W)",
           "hidden": "(!((data.enableMultiUse) ?? data['enableMultiUse'])) || (!(((data.multiUse && data.multiUse.reserveEnabled) ?? data['multiUse.reserveEnabled']) === true))"
         },
         "multiUse.consumers": {
           "type": "accordion",
-          "label": "Consumers (Multi-Use)",
+          "label": "Verbraucher (Multi-Use)",
           "items": [
             {
               "type": "text",
               "attr": "key",
-              "label": "Key (unique)",
+              "label": "Schlüssel (eindeutig)",
               "xs": 12,
               "sm": 6,
               "md": 4
@@ -2457,7 +2550,7 @@
                   "value": "load"
                 }
               ],
-              "label": "Type",
+              "label": "Typ",
               "xs": 12,
               "sm": 6,
               "md": 4
@@ -2468,7 +2561,7 @@
               "min": 0,
               "max": 100000,
               "step": 1,
-              "label": "Priority",
+              "label": "Priorität (1=hoch)",
               "xs": 12,
               "sm": 6,
               "md": 4
@@ -2494,7 +2587,37 @@
                   "value": "none"
                 }
               ],
-              "label": "Control basis",
+              "label": "Regelgröße",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "objectId",
+              "attr": "setAId",
+              "label": "Soll-Strom (A) - State-ID",
+              "help": "Optional. Wenn gesetzt, wird intern automatisch ein Key erzeugt (mu.<key>.setA).",
+              "types": ["state"],
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "objectId",
+              "attr": "setWId",
+              "label": "Soll-Leistung (W) - State-ID",
+              "help": "Optional. Wenn gesetzt, wird intern automatisch ein Key erzeugt (mu.<key>.setW).",
+              "types": ["state"],
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "objectId",
+              "attr": "enableId",
+              "label": "Enable/Disable - State-ID",
+              "help": "Optional. Wenn gesetzt, wird intern automatisch ein Key erzeugt (mu.<key>.enable).",
+              "types": ["state"],
               "xs": 12,
               "sm": 6,
               "md": 4
@@ -2502,7 +2625,8 @@
             {
               "type": "text",
               "attr": "setAKey",
-              "label": "Setpoint (A) DP-Key",
+              "expertMode": true,
+              "label": "Soll-Strom Key (Experte)",
               "xs": 12,
               "sm": 6,
               "md": 4
@@ -2510,7 +2634,8 @@
             {
               "type": "text",
               "attr": "setWKey",
-              "label": "Setpoint (W) DP-Key",
+              "expertMode": true,
+              "label": "Soll-Leistung Key (Experte)",
               "xs": 12,
               "sm": 6,
               "md": 4
@@ -2518,7 +2643,8 @@
             {
               "type": "text",
               "attr": "enableKey",
-              "label": "Enable DP-Key",
+              "expertMode": true,
+              "label": "Enable-Key (Experte)",
               "xs": 12,
               "sm": 6,
               "md": 4
@@ -2547,7 +2673,7 @@
           "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
           "titleAttr": "key",
           "clone": "key",
-          "validator": "(() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAKey || !!c.setWKey);})()",
+          "validator": "(() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAId || !!c.setWId || !!c.setAKey || !!c.setWKey);})()",
           "validatorErrorText": "Multi-Use consumers: Add at least one consumer with unique Key and a setpoint DP key (A or W).",
           "validatorNoSaveOnError": false
         }
