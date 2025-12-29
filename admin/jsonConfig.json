@@ -1,1260 +1,2428 @@
 {
-    "i18n": true,
-    "type": "tabs",
-    "items": {
-        "tab_general": {
-            "type": "panel",
-            "label": "General",
-            "items": {
-                "enablePeakShaving": {
-                    "type": "checkbox",
-                    "label": "Enable Peak Shaving"
-                },
-                "enableChargingManagement": {
-                    "type": "checkbox",
-                    "label": "Enable Charging Management"
-                },
-                "enableMultiUse": {
-                    "type": "checkbox",
-                    "label": "Enable Multi-Use"
-                },
-                "enableStorageControl": {
-                    "type": "checkbox",
-                    "label": "Speicher-Steuerung aktivieren",
-                    "help": "Aktiviert die Speicher-Anbindung. Ohne Aktivierung schreibt der Adapter keine Werte in den Speicher."
-                },
-                "schedulerIntervalMs": {
-                    "type": "number",
-                    "label": "Scheduler interval (ms)",
-                    "min": 250,
-                    "max": 60000
-                },
-                "divider_diag": {
-                    "type": "divider",
-                    "label": "Diagnostics"
-                },
-                "diagnostics.enabled": {
-                    "type": "checkbox",
-                    "label": "Enable diagnostics logging",
-                    "help": "Enables additional debug/info logs and optional diagnostics states."
-                },
-                "diagnostics.writeStates": {
-                    "type": "checkbox",
-                    "label": "Write diagnostics states",
-                    "help": "If enabled, diagnostics data is written to adapter states (diagnostics.*)."
-                },
-                "diagnostics.logLevel": {
-                    "type": "select",
-                    "label": "Diagnostics log level",
-                    "options": [
-                        {
-                            "label": "debug",
-                            "value": "debug"
-                        },
-                        {
-                            "label": "info",
-                            "value": "info"
-                        }
-                    ],
-                    "help": "Log level used for diagnostics output (adapter log)."
-                },
-                "diagnostics.logIntervalSec": {
-                    "type": "number",
-                    "label": "Diagnostics log interval (sec)",
-                    "min": 0,
-                    "max": 3600,
-                    "step": 1,
-                    "help": "Minimum seconds between diagnostics log lines (0 = every tick)."
-                },
-                "diagnostics.stateIntervalSec": {
-                    "type": "number",
-                    "label": "Diagnostics state interval (sec)",
-                    "min": 0,
-                    "max": 3600,
-                    "step": 1,
-                    "help": "Minimum seconds between writing diagnostics states (0 = every tick)."
-                },
-                "diagnostics.alwaysOnError": {
-                    "type": "checkbox",
-                    "label": "Always log/write on error",
-                    "help": "If a module error occurs, diagnostics are logged/written immediately (ignores intervals)."
-                },
-                "diagnostics.maxJsonLen": {
-                    "type": "number",
-                    "label": "Diagnostics max JSON length",
-                    "min": 1000,
-                    "max": 200000,
-                    "step": 1000,
-                    "help": "Maximum length for JSON written to diagnostics states (prevents oversized states)."
-                },
-                "divider_dps": {
-                    "type": "divider",
-                    "label": "Universal Datapoints"
-                },
-                "globalDatapoints": {
-                    "type": "table",
-                    "label": "Global datapoints (manufacturer-independent mapping)",
-                    "allowAdd": true,
-                    "allowDelete": true,
-                    "rows": 50,
-                    "items": [
-                        {
-                            "type": "text",
-                            "width": "15%",
-                            "attr": "key",
-                            "title": "Key (unique)"
-                        },
-                        {
-                            "type": "text",
-                            "width": "15%",
-                            "attr": "name",
-                            "title": "Name"
-                        },
-                        {
-                            "type": "objectId",
-                            "width": "30%",
-                            "attr": "objectId",
-                            "title": "ioBroker Object ID",
-                            "types": [
-                                "state"
-                            ]
-                        },
-                        {
-                            "type": "select",
-                            "options": [
-                                {
-                                    "label": "number",
-                                    "value": "number"
-                                },
-                                {
-                                    "label": "boolean",
-                                    "value": "boolean"
-                                },
-                                {
-                                    "label": "string",
-                                    "value": "string"
-                                }
-                            ],
-                            "width": "10%",
-                            "attr": "dataType",
-                            "title": "Type"
-                        },
-                        {
-                            "type": "select",
-                            "options": [
-                                {
-                                    "label": "read",
-                                    "value": "read"
-                                },
-                                {
-                                    "label": "write",
-                                    "value": "write"
-                                },
-                                {
-                                    "label": "both",
-                                    "value": "both"
-                                }
-                            ],
-                            "width": "10%",
-                            "attr": "direction",
-                            "title": "R/W"
-                        },
-                        {
-                            "type": "text",
-                            "width": "6%",
-                            "attr": "unit",
-                            "title": "Unit"
-                        },
-                        {
-                            "type": "number",
-                            "width": "6%",
-                            "attr": "scale",
-                            "title": "Scale"
-                        },
-                        {
-                            "type": "number",
-                            "width": "6%",
-                            "attr": "offset",
-                            "title": "Offset"
-                        },
-                        {
-                            "type": "checkbox",
-                            "width": "6%",
-                            "attr": "invert",
-                            "title": "Invert"
-                        },
-                        {
-                            "type": "number",
-                            "width": "6%",
-                            "attr": "deadband",
-                            "title": "Deadband"
-                        },
-                        {
-                            "type": "number",
-                            "width": "6%",
-                            "attr": "min",
-                            "title": "Min"
-                        },
-                        {
-                            "type": "number",
-                            "width": "6%",
-                            "attr": "max",
-                            "title": "Max"
-                        },
-                        {
-                            "type": "text",
-                            "width": "20%",
-                            "attr": "note",
-                            "title": "Note"
-                        }
-                    ]
-                }
-            }
+  "i18n": true,
+  "type": "tabs",
+  "items": {
+    "tab_wizard": {
+      "type": "panel",
+      "label": "Setup Wizard",
+      "items": {
+        "wizard.intro": {
+          "type": "staticText",
+          "text": "This wizard helps you set up the adapter in the recommended order. You can switch to the expert tabs at any time."
         },
-        "tab_peak": {
-            "type": "panel",
-            "label": "Peak Shaving",
-            "items": {
-                "peakShaving.mode": {
-                    "type": "select",
-                    "label": "Mode",
-                    "options": [
-                        {
-                            "label": "static",
-                            "value": "static"
-                        },
-                        {
-                            "label": "dynamic",
-                            "value": "dynamic"
-                        }
-                    ]
-                },
-                "peakShaving.gridPointPowerId": {
-                    "type": "objectId",
-                    "label": "Grid point power (W) - State ID",
-                    "types": [
-                        "state"
-                    ]
-                },
-                "peakShaving.staleTimeoutSec": {
-                    "type": "number",
-                    "label": "Meter stale timeout (s)",
-                    "help": "If meter values are older than this, Peak Shaving enters failsafe (STALE_METER) and will not release."
-                },
-                "peakShaving.maxPowerW": {
-                    "type": "number",
-                    "label": "Max power (W)"
-                },
-                "peakShaving.safetyMarginW": {
-                    "type": "number",
-                    "label": "Safety margin (W)",
-                    "help": "Subtracts from the max power limit to keep headroom for meter delay and load spikes."
-                },
-                "peakShaving.hysteresisW": {
-                    "type": "number",
-                    "label": "Hysteresis (W)"
-                },
-                "peakShaving.activateDelaySeconds": {
-                    "type": "number",
-                    "label": "Activate delay (s)"
-                },
-                "peakShaving.releaseDelaySeconds": {
-                    "type": "number",
-                    "label": "Release delay (s)"
-                },
-                "peakShaving.useAverage": {
-                    "type": "checkbox",
-                    "label": "Use average for decision"
-                },
-                "peakShaving.maxPhaseA": {
-                    "type": "number",
-                    "label": "Max current per phase (A)"
-                },
-                "peakShaving.phaseMode": {
-                    "type": "select",
-                    "label": "Phase decision mode",
-                    "options": [
-                        {
-                            "label": "off",
-                            "value": "off"
-                        },
-                        {
-                            "label": "info",
-                            "value": "info"
-                        },
-                        {
-                            "label": "enforce",
-                            "value": "enforce"
-                        }
-                    ],
-                    "help": "When 'enforce', phase current limits can activate peak shaving even without a power limit."
-                },
-                "peakShaving.hysteresisA": {
-                    "type": "number",
-                    "label": "Hysteresis per phase (A)",
-                    "help": "Release threshold: maxPhaseA - hysteresisA."
-                },
-                "peakShaving.voltageV": {
-                    "type": "number",
-                    "label": "Voltage (V)",
-                    "help": "Used to estimate required reduction from phase over-current."
-                },
-                "peakShaving.smoothingSeconds": {
-                    "type": "number",
-                    "label": "Smoothing window (s)"
-                },
-                "peakShaving.fastTripEnabled": {
-                    "type": "checkbox",
-                    "label": "Fast trip enabled",
-                    "help": "If enabled, Peak Shaving can activate immediately on spikes, bypassing activate delay."
-                },
-                "peakShaving.fastTripMode": {
-                    "type": "select",
-                    "label": "Fast trip mode",
-                    "options": [
-                        {
-                            "label": "max (window)",
-                            "value": "max"
-                        },
-                        {
-                            "label": "raw (current)",
-                            "value": "raw"
-                        }
-                    ],
-                    "help": "Select spike detector: max of recent window or current raw value."
-                },
-                "divider_peak_dynamic": {
-                    "type": "divider",
-                    "label": "Dynamic Mode Inputs (optional)"
-                },
-                "peakShaving.allowedPowerId": {
-                    "type": "objectId",
-                    "label": "Allowed max power (W) - State ID (optional)",
-                    "help": "Optional external limit (e.g. grid signal). In dynamic mode the effective limit is min(Max power, Allowed max power) minus Reserve.",
-                    "sm": 12,
-                    "md": 12,
-                    "lg": 12,
-                    "types": [
-                        "state"
-                    ]
-                },
-                "peakShaving.reserveW": {
-                    "type": "number",
-                    "label": "Reserve (W)",
-                    "help": "Reserve that is subtracted from the effective limit in dynamic mode (e.g. keep headroom).",
-                    "sm": 12,
-                    "md": 12,
-                    "lg": 12
-                },
-                "peakShaving.baseLoadPowerId": {
-                    "type": "objectId",
-                    "label": "Base load / house consumption (W) - State ID (optional)",
-                    "help": "If set, the adapter also calculates the target power for controlled loads: availableForControlledW = effectiveLimit - (baseLoad - PV - Battery).",
-                    "sm": 12,
-                    "md": 12,
-                    "lg": 12,
-                    "types": [
-                        "state"
-                    ]
-                },
-                "peakShaving.pvPowerId": {
-                    "type": "objectId",
-                    "label": "PV power (W) - State ID (optional)",
-                    "help": "PV generation power (W), positive. Used only for availableForControlledW calculation.",
-                    "sm": 12,
-                    "md": 12,
-                    "lg": 12,
-                    "types": [
-                        "state"
-                    ]
-                },
-                "peakShaving.batteryPowerId": {
-                    "type": "objectId",
-                    "label": "Battery power (W) - State ID (optional)",
-                    "help": "Battery discharge power (W), positive. Used only for availableForControlledW calculation.",
-                    "sm": 12,
-                    "md": 12,
-                    "lg": 12,
-                    "types": [
-                        "state"
-                    ]
-                },
-                "peakShaving.l1CurrentId": {
-                    "type": "objectId",
-                    "label": "Phase L1 current (A) - State ID",
-                    "help": "ioBroker state ID (optional). Leave empty if you map via global datapoints.",
-                    "sm": 12,
-                    "md": 12,
-                    "lg": 12,
-                    "types": [
-                        "state"
-                    ]
-                },
-                "peakShaving.l2CurrentId": {
-                    "type": "objectId",
-                    "label": "Phase L2 current (A) - State ID",
-                    "help": "ioBroker state ID (optional). Leave empty if you map via global datapoints.",
-                    "sm": 12,
-                    "md": 12,
-                    "lg": 12,
-                    "types": [
-                        "state"
-                    ]
-                },
-                "peakShaving.l3CurrentId": {
-                    "type": "objectId",
-                    "label": "Phase L3 current (A) - State ID",
-                    "help": "ioBroker state ID (optional). Leave empty if you map via global datapoints.",
-                    "sm": 12,
-                    "md": 12,
-                    "lg": 12,
-                    "types": [
-                        "state"
-                    ]
-                },
-                "divider_peak_actuation": {
-                    "type": "divider",
-                    "label": "Actuation (controlled loads / wallboxes)"
-                },
-                "peakShaving.actuationEnabled": {
-                    "type": "checkbox",
-                    "label": "Enable actuation (apply reductions to actuators)"
-                },
-                "peakShaving.actuators": {
-                    "type": "table",
-                    "label": "Actuators (controlled loads / wallboxes)",
-                    "allowAdd": true,
-                    "allowDelete": true,
-                    "rows": 50,
-                    "items": [
-                        {
-                            "type": "objectId",
-                            "width": "10%",
-                            "attr": "id",
-                            "title": "ID (unique)",
-                            "types": [
-                                "state"
-                            ]
-                        },
-                        {
-                            "type": "text",
-                            "width": "15%",
-                            "attr": "name",
-                            "title": "Name"
-                        },
-                        {
-                            "type": "checkbox",
-                            "width": "6%",
-                            "attr": "enabled",
-                            "title": "Enabled"
-                        },
-                        {
-                            "type": "number",
-                            "min": 1,
-                            "max": 999,
-                            "width": "8%",
-                            "attr": "priority",
-                            "title": "Priority (1=high)"
-                        },
-                        {
-                            "type": "select",
-                            "options": [
-                                {
-                                    "label": "Limit power (W)",
-                                    "value": "limitW"
-                                },
-                                {
-                                    "label": "Limit current (A)",
-                                    "value": "limitA"
-                                },
-                                {
-                                    "label": "On/Off",
-                                    "value": "onOff"
-                                }
-                            ],
-                            "width": "12%",
-                            "attr": "mode",
-                            "title": "Mode"
-                        },
-                        {
-                            "type": "select",
-                            "options": [
-                                {
-                                    "label": "1",
-                                    "value": "1"
-                                },
-                                {
-                                    "label": "3",
-                                    "value": "3"
-                                }
-                            ],
-                            "width": "6%",
-                            "attr": "phases",
-                            "title": "Phases"
-                        },
-                        {
-                            "type": "text",
-                            "width": "20%",
-                            "attr": "measurePowerId",
-                            "title": "Measured power (W) - State ID (optional)"
-                        },
-                        {
-                            "type": "text",
-                            "width": "20%",
-                            "attr": "setpointId",
-                            "title": "Setpoint State ID (W or A)"
-                        },
-                        {
-                            "type": "text",
-                            "width": "20%",
-                            "attr": "enableId",
-                            "title": "Enable/OnOff State ID (optional)"
-                        },
-                        {
-                            "type": "number",
-                            "width": "7%",
-                            "attr": "min",
-                            "title": "Min (W/A)"
-                        },
-                        {
-                            "type": "number",
-                            "width": "7%",
-                            "attr": "max",
-                            "title": "Max (W/A)"
-                        },
-                        {
-                            "type": "text",
-                            "width": "10%",
-                            "attr": "note",
-                            "title": "Note"
-                        }
-                    ]
-                }
+        "_wizard_step1": {
+          "type": "panel",
+          "label": "Step 1: Enable modules",
+          "collapsable": true,
+          "items": {
+            "wizard.step1.info": {
+              "type": "staticText",
+              "text": "Enable only the modules you actually need."
+            },
+            "enablePeakShaving": {
+              "type": "checkbox",
+              "label": "Enable Peak Shaving"
+            },
+            "enableChargingManagement": {
+              "type": "checkbox",
+              "label": "Enable Charging Management"
+            },
+            "enableStorageControl": {
+              "type": "checkbox",
+              "label": "Speicher-Steuerung aktivieren",
+              "help": "Aktiviert die Speicher-Anbindung. Ohne Aktivierung schreibt der Adapter keine Werte in den Speicher."
+            },
+            "enableMultiUse": {
+              "type": "checkbox",
+              "label": "Enable Multi-Use"
             }
+          }
         },
-        "tab_charging": {
-            "type": "panel",
-            "label": "Charging Management",
-            "items": {
-                "chargingManagement.mode": {
-                    "type": "select",
-                    "label": "Mode",
-                    "options": [
-                        {
-                            "label": "off",
-                            "value": "off"
-                        },
-                        {
-                            "label": "pvSurplus",
-                            "value": "pvSurplus"
-                        },
-                        {
-                            "label": "mixed",
-                            "value": "mixed"
-                        }
-                    ]
-                },
-                "chargingManagement.pvSurplusOnly": {
-                    "type": "checkbox",
-                    "label": "PV surplus only"
-                },
-                "chargingManagement.boostEnabled": {
-                    "type": "checkbox",
-                    "label": "Boost enabled"
-                },
-                "divider_charging_budget": {
-                    "type": "divider",
-                    "label": "Budget / Priorities"
-                },
-                "chargingManagement.totalBudgetMode": {
-                    "type": "select",
-                    "label": "Total budget mode",
-                    "options": [
-                        {
-                            "label": "unlimited",
-                            "value": "unlimited"
-                        },
-                        {
-                            "label": "static",
-                            "value": "static"
-                        },
-                        {
-                            "label": "fromPeakShaving",
-                            "value": "fromPeakShaving"
-                        },
-                        {
-                            "label": "fromDatapoint",
-                            "value": "fromDatapoint"
-                        },
-                        {
-                            "label": "engine",
-                            "value": "engine"
-                        }
-                    ],
-                    "help": "Defines the total charging budget used for priority distribution."
-                },
-                "chargingManagement.staticMaxChargingPowerW": {
-                    "type": "number",
-                    "label": "Static max charging power (W)",
-                    "min": 0,
-                    "max": 1000000
-                },
-                "chargingManagement.budgetPowerId": {
-                    "type": "objectId",
-                    "label": "Budget power (W) - State ID (for fromDatapoint)",
-                    "help": "If total budget mode is 'fromDatapoint', this state provides the budget in W.",
-                    "types": [
-                        "state"
-                    ]
-                },
-                "chargingManagement.pauseWhenPeakShavingActive": {
-                    "type": "checkbox",
-                    "label": "Pause charging management when Peak Shaving is active"
-                },
-                "chargingManagement.pauseBehavior": {
-                    "type": "select",
-                    "label": "Pause behavior",
-                    "options": [
-                        {
-                            "label": "rampDownToZero",
-                            "value": "rampDownToZero"
-                        },
-                        {
-                            "label": "followPeakBudget",
-                            "value": "followPeakBudget"
-                        }
-                    ],
-                    "help": "When paused by Peak Shaving: ramp down to 0 (safest) or follow Peak Shaving available budget."
-                },
-                "chargingManagement.staleTimeoutSec": {
-                    "type": "number",
-                    "label": "Meter stale timeout (s)",
-                    "help": "If meter/budget values are older than this, Charging Management forces safe targets (STALE_METER)."
-                },
-                "chargingManagement.defaultPhases": {
-                    "type": "select",
-                    "label": "Default phases",
-                    "options": [
-                        {
-                            "label": "1",
-                            "value": 1
-                        },
-                        {
-                            "label": "3",
-                            "value": 3
-                        }
-                    ]
-                },
-                "chargingManagement.voltageV": {
-                    "type": "number",
-                    "label": "Voltage (V)"
-                },
-                "chargingManagement.acMinPower3pW": {
-                    "type": "number",
-                    "label": "AC 3p min power (W)",
-                    "min": 0,
-                    "max": 1000000,
-                    "help": "Minimum target power for 3-phase AC wallboxes. Typical: 4200 W."
-                },
-                "chargingManagement.activityThresholdW": {
-                    "type": "number",
-                    "label": "Activity threshold (W)",
-                    "min": 0,
-                    "max": 1000000,
-                    "help": "A wallbox is considered 'charging' if its measured power is >= this threshold."
-                },
-                "chargingManagement.stopGraceSec": {
-                    "type": "number",
-                    "label": "Stop grace (s)",
-                    "min": 0,
-                    "max": 3600,
-                    "help": "Keep a wallbox in 'charging' state for this duration after power drops below threshold (prevents flapping)."
-                },
-                "chargingManagement.sessionKeepSec": {
-                    "type": "number",
-                    "label": "Session keep time (s)",
-                    "min": 0,
-                    "max": 86400,
-                    "help": "Keep the charging session timestamp for this duration after a charging session stops. If it resumes within this window, it keeps its original arrival order."
-                },
-                "chargingManagement.minCurrentA": {
-                    "type": "number",
-                    "label": "Default min current (A)"
-                },
-                "chargingManagement.maxCurrentA": {
-                    "type": "number",
-                    "label": "Default max current (A)"
-                },
-                "chargingManagement.maxDeltaWPerTick": {
-                    "type": "number",
-                    "label": "Max delta per tick (W)",
-                    "help": "Limits ramp-up per control cycle. Ramp-down is always immediate for safety."
-                },
-                "chargingManagement.maxDeltaAPerTick": {
-                    "type": "number",
-                    "label": "Max delta per tick (A)",
-                    "help": "Limits ramp-up per control cycle in amperes. Ramp-down is always immediate for safety."
-                },
-                "chargingManagement.stepW": {
-                    "type": "number",
-                    "label": "Step (W)",
-                    "help": "Quantize setpoints to this step size (rounded down). Set 0 to disable."
-                },
-                "chargingManagement.stepA": {
-                    "type": "number",
-                    "label": "Step (A)",
-                    "help": "Quantize current setpoints to this step size (rounded down). Set 0 to disable."
-                },
-                "chargingManagement.wallboxes": {
-                    "type": "table",
-                    "label": "Wallboxes (manufacturer-independent mapping)",
-                    "allowAdd": true,
-                    "allowDelete": true,
-                    "rows": 50,
-                    "items": [
-                        {
-                            "type": "text",
-                            "width": "10%",
-                            "attr": "key",
-                            "title": "Key (unique)"
-                        },
-                        {
-                            "type": "text",
-                            "width": "14%",
-                            "attr": "name",
-                            "title": "Name"
-                        },
-                        {
-                            "type": "checkbox",
-                            "width": "6%",
-                            "attr": "enabled",
-                            "title": "Enabled"
-                        },
-                        {
-                            "type": "select",
-                            "options": [
-                                {
-                                    "label": "AC",
-                                    "value": "AC"
-                                },
-                                {
-                                    "label": "DC",
-                                    "value": "DC"
-                                }
-                            ],
-                            "width": "7%",
-                            "attr": "chargerType",
-                            "title": "Charger type"
-                        },
-                        {
-                            "type": "select",
-                            "options": [
-                                {
-                                    "label": "auto",
-                                    "value": "auto"
-                                },
-                                {
-                                    "label": "currentA",
-                                    "value": "currentA"
-                                },
-                                {
-                                    "label": "powerW",
-                                    "value": "powerW"
-                                }
-                            ],
-                            "width": "8%",
-                            "help": "auto: AC uses setCurrentA if present else setPowerW; DC uses setPowerW.",
-                            "attr": "controlBasis",
-                            "title": "Control basis"
-                        },
-                        {
-                            "type": "number",
-                            "width": "8%",
-                            "attr": "priority",
-                            "title": "Priority (1=high)"
-                        },
-                        {
-                            "type": "select",
-                            "width": "6%",
-                            "options": [
-                                {
-                                    "label": "1",
-                                    "value": 1
-                                },
-                                {
-                                    "label": "3",
-                                    "value": 3
-                                }
-                            ],
-                            "attr": "phases",
-                            "title": "Phases"
-                        },
-                        {
-                            "type": "number",
-                            "width": "8%",
-                            "attr": "minA",
-                            "title": "Min current (A)"
-                        },
-                        {
-                            "type": "number",
-                            "width": "8%",
-                            "attr": "maxA",
-                            "title": "Max current (A)"
-                        },
-                        {
-                            "type": "number",
-                            "min": 0,
-                            "max": 2000000,
-                            "width": "8%",
-                            "attr": "minPowerW",
-                            "title": "Min power (W)"
-                        },
-                        {
-                            "type": "number",
-                            "min": 0,
-                            "max": 2000000,
-                            "width": "8%",
-                            "attr": "maxPowerW",
-                            "title": "Max power (W)"
-                        },
-                        {
-                            "type": "text",
-                            "width": "18%",
-                            "attr": "actualPowerWId",
-                            "title": "Actual power (W) - State ID"
-                        },
-                        {
-                            "type": "text",
-                            "width": "18%",
-                            "attr": "actualCurrentAId",
-                            "title": "Actual current (A) - State ID"
-                        },
-                        {
-                            "type": "text",
-                            "width": "18%",
-                            "attr": "setCurrentAId",
-                            "title": "Set current limit (A) - State ID"
-                        },
-                        {
-                            "type": "text",
-                            "width": "18%",
-                            "attr": "setPowerWId",
-                            "title": "Set power limit (W) - State ID"
-                        },
-                        {
-                            "type": "text",
-                            "width": "18%",
-                            "attr": "enableId",
-                            "title": "Enable/Disable - State ID"
-                        },
-                        {
-                            "type": "text",
-                            "width": "18%",
-                            "attr": "statusId",
-                            "title": "Status - State ID"
-                        },
-                        {
-                            "type": "text",
-                            "width": "18%",
-                            "attr": "phaseL1AId",
-                            "title": "Phase L1 current (A) - State ID"
-                        },
-                        {
-                            "type": "text",
-                            "width": "18%",
-                            "attr": "phaseL2AId",
-                            "title": "Phase L2 current (A) - State ID"
-                        },
-                        {
-                            "type": "text",
-                            "width": "18%",
-                            "attr": "phaseL3AId",
-                            "title": "Phase L3 current (A) - State ID"
-                        },
-                        {
-                            "type": "text",
-                            "width": "20%",
-                            "attr": "note",
-                            "title": "Note"
-                        }
-                    ]
-                }
+        "_wizard_step2": {
+          "type": "panel",
+          "label": "Step 2: Peak Shaving basics",
+          "collapsable": true,
+          "items": {
+            "wizard.step2.info": {
+              "type": "staticText",
+              "text": "For Peak Shaving you need at least the grid meter power datapoint and a max power limit."
+            },
+            "peakShaving.gridPointPowerId": {
+              "type": "objectId",
+              "label": "Grid point power (W) - State ID",
+              "types": [
+                "state"
+              ],
+              "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+              "validator": "!(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true) || !!((data.peakShaving && data.peakShaving.gridPointPowerId) ?? data['peakShaving.gridPointPowerId'])",
+              "validatorErrorText": "Peak Shaving: Please select the grid power state (W).",
+              "validatorNoSaveOnError": true
+            },
+            "peakShaving.maxPowerW": {
+              "type": "number",
+              "label": "Max power (W)",
+              "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+              "validator": "(() => {const en=(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true);if(!en) return true;const mode=(((data.peakShaving && data.peakShaving.mode) ?? data['peakShaving.mode']) ?? 'static');if(mode!=='static') return true;const v=((data.peakShaving && data.peakShaving.maxPowerW) ?? data['peakShaving.maxPowerW']);return Number(v)>0;})()",
+              "validatorErrorText": "Peak Shaving: In static mode please set Max power (W) > 0.",
+              "validatorNoSaveOnError": true
+            },
+            "peakShaving.safetyMarginW": {
+              "type": "number",
+              "label": "Safety margin (W)",
+              "help": "Subtracts from the max power limit to keep headroom for meter delay and load spikes.",
+              "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])"
             }
+          }
         },
-        "tab_storage": {
-            "type": "panel",
-            "label": "Speicher",
-            "items": {
-                "divider_storage_mode": {
-                    "type": "divider",
-                    "label": "Speicher-Steuerung"
+        "_wizard_step3": {
+          "type": "panel",
+          "label": "Step 3: Add actuators for Peak Shaving",
+          "collapsable": true,
+          "items": {
+            "wizard.step3.info": {
+              "type": "staticText",
+              "text": "Add controllable loads/actuators that may be reduced during Peak Shaving."
+            },
+            "peakShaving.actuationEnabled": {
+              "type": "checkbox",
+              "label": "Enable actuation (apply reductions to actuators)",
+              "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+              "expertMode": true
+            },
+            "peakShaving.actuators": {
+              "type": "accordion",
+              "label": "Actuators (controlled loads / wallboxes)",
+              "items": [
+                {
+                  "type": "objectId",
+                  "attr": "id",
+                  "types": [
+                    "state"
+                  ],
+                  "label": "ID (unique)",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
                 },
-                "storage.controlMode": {
-                    "type": "select",
-                    "label": "Steuerungsart Speicher",
-                    "options": [
-                        {
-                            "label": "Sollleistung (W)",
-                            "value": "targetPower"
-                        },
-                        {
-                            "label": "Lade/Entlade-Begrenzung",
-                            "value": "limits"
-                        },
-                        {
-                            "label": "Ein/Aus",
-                            "value": "enableFlags"
-                        },
-                        {
-                            "label": "Nur Anzeige",
-                            "value": "readOnly"
-                        }
-                    ],
-                    "help": "Wähle, wie der Speicher angesteuert werden kann. Die benötigten Datenpunkte hängen vom Modus ab."
+                {
+                  "type": "text",
+                  "attr": "name",
+                  "label": "Name",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
                 },
-                "divider_storage_dps": {
-                    "type": "divider",
-                    "label": "Speicher-Datenpunkte (Installateur)"
+                {
+                  "type": "checkbox",
+                  "attr": "enabled",
+                  "label": "Enabled",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
                 },
-                "storage.datapoints.socObjectId": {
-                    "type": "objectId",
-                    "label": "Speicher Ladezustand (SoC) – Datenpunkt-ID",
-                    "help": "Pflicht. Prozentwert 0–100.",
-                    "types": [
-                        "state"
-                    ]
+                {
+                  "type": "number",
+                  "min": 1,
+                  "max": 999,
+                  "attr": "priority",
+                  "label": "Priority (1=high)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
                 },
-                "storage.datapoints.socScale": {
-                    "type": "number",
-                    "label": "SoC Umrechnungsfaktor",
-                    "help": "Standard 1. Beispiel: Wenn der Speicher 0–1 liefert, dann 100 eintragen."
+                {
+                  "type": "select",
+                  "options": [
+                    {
+                      "label": "Limit power (W)",
+                      "value": "limitW"
+                    },
+                    {
+                      "label": "Limit current (A)",
+                      "value": "limitA"
+                    },
+                    {
+                      "label": "On/Off",
+                      "value": "onOff"
+                    }
+                  ],
+                  "attr": "mode",
+                  "label": "Mode",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
                 },
-                "storage.datapoints.batteryPowerObjectId": {
-                    "type": "objectId",
-                    "label": "Speicher Ist-Leistung (W) – Datenpunkt-ID",
-                    "help": "Optional. Hilft für Diagnose und spätere Regelung.",
-                    "types": [
-                        "state"
-                    ]
+                {
+                  "type": "select",
+                  "options": [
+                    {
+                      "label": "1",
+                      "value": "1"
+                    },
+                    {
+                      "label": "3",
+                      "value": "3"
+                    }
+                  ],
+                  "attr": "phases",
+                  "expertMode": true,
+                  "label": "Phases",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
                 },
-                "storage.datapoints.batteryPowerScale": {
-                    "type": "number",
-                    "label": "Ist-Leistung Umrechnungsfaktor",
-                    "help": "Standard 1. Beispiel: kW → W = 1000."
+                {
+                  "type": "number",
+                  "attr": "min",
+                  "expertMode": true,
+                  "label": "Min (W/A)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
                 },
-                "storage.datapoints.batteryPowerInvert": {
-                    "type": "checkbox",
-                    "label": "Ist-Leistung Vorzeichen umdrehen",
-                    "help": "Aktivieren, wenn Laden/Entladen im Datenpunkt anders herum ist."
+                {
+                  "type": "number",
+                  "attr": "max",
+                  "expertMode": true,
+                  "label": "Max (W/A)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
                 },
-                "divider_storage_write": {
-                    "type": "divider",
-                    "label": "Schreib-Datenpunkte (je nach Modus)"
+                {
+                  "type": "objectId",
+                  "attr": "setpointId",
+                  "types": [
+                    "state"
+                  ],
+                  "label": "Setpoint State ID (W or A)",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
                 },
-                "divider_storage_regelung": {
-                    "type": "divider",
-                    "label": "Speicher-Regelung"
+                {
+                  "type": "objectId",
+                  "attr": "measurePowerId",
+                  "types": [
+                    "state"
+                  ],
+                  "label": "Measured power (W) - State ID (optional)",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
                 },
-                "storage.staleTimeoutSec": {
-                    "type": "number",
-                    "label": "Messwert-Timeout (Sekunden)",
-                    "help": "Wenn Messwerte älter sind als dieser Wert, wird der Speicher auf 0 gesetzt (Sicherheit)."
+                {
+                  "type": "objectId",
+                  "attr": "enableId",
+                  "types": [
+                    "state"
+                  ],
+                  "label": "Enable/OnOff State ID (optional)",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
                 },
-                "storage.maxChargeW": {
-                    "type": "number",
-                    "label": "Maximale Ladeleistung (W)",
-                    "help": "Begrenzung für Lade-Leistung, wenn der Adapter aktiv regelt (Sollleistung)."
-                },
-                "storage.maxDischargeW": {
-                    "type": "number",
-                    "label": "Maximale Entladeleistung (W)",
-                    "help": "Begrenzung für Entlade-Leistung, wenn der Adapter aktiv regelt (Sollleistung)."
-                },
-                "storage.stepW": {
-                    "type": "number",
-                    "label": "Schrittweite (W)",
-                    "help": "Rundet die Sollleistung auf diese Schrittweite. 0 = keine Rundung."
-                },
-                "storage.maxDeltaWPerTick": {
-                    "type": "number",
-                    "label": "Maximale Änderung je Takt (W)",
-                    "help": "Begrenzt, wie schnell sich die Sollleistung pro Takt ändern darf."
-                },
-                "divider_storage_reserve": {
-                    "type": "divider",
-                    "label": "Notstrom-Reserve"
-                },
-                "storage.reserveEnabled": {
-                    "type": "checkbox",
-                    "label": "Notstrom-Reserve aktivieren",
-                    "help": "Wenn aktiv, wird Entladen unterhalb des Mindest-SoC verhindert."
-                },
-                "storage.reserveMinSocPct": {
-                    "type": "number",
-                    "label": "Mindest-SoC für Entladen (%)",
-                    "help": "Unterhalb dieses SoC entlädt der Adapter den Speicher nicht mehr."
-                },
-                "divider_storage_pv": {
-                    "type": "divider",
-                    "label": "Eigenverbrauch (PV)"
-                },
-                "storage.pvEnabled": {
-                    "type": "checkbox",
-                    "label": "PV-Überschuss laden",
-                    "help": "Wenn aktiv, lädt der Adapter bei Netz-Einspeisung (negativer Netzbezug) den Speicher."
-                },
-                "storage.pvExportThresholdW": {
-                    "type": "number",
-                    "label": "PV-Überschuss-Schwelle (W)",
-                    "help": "Erst ab dieser Einspeiseleistung wird geladen (zur Vermeidung von Flattern)."
-                },
-                "storage.datapoints.targetPowerObjectId": {
-                    "type": "objectId",
-                    "label": "Speicher Sollleistung (W) – Datenpunkt-ID",
-                    "help": "Nur Modus „Sollleistung (W)“. Empfehlung: negativ = Laden, positiv = Entladen (bei Bedarf Vorzeichen umdrehen).",
-                    "types": [
-                        "state"
-                    ]
-                },
-                "storage.datapoints.targetPowerScale": {
-                    "type": "number",
-                    "label": "Sollleistung Umrechnungsfaktor",
-                    "help": "Standard 1. Beispiel: kW → W = 1000."
-                },
-                "storage.datapoints.targetPowerInvert": {
-                    "type": "checkbox",
-                    "label": "Sollleistung Vorzeichen umdrehen",
-                    "help": "Aktivieren, wenn der Speicher eine andere Vorzeichen-Regel erwartet."
-                },
-                "storage.datapoints.maxChargeObjectId": {
-                    "type": "objectId",
-                    "label": "Maximale Ladeleistung (W) – Datenpunkt-ID",
-                    "help": "Nur Modus „Lade/Entlade-Begrenzung“.",
-                    "types": [
-                        "state"
-                    ]
-                },
-                "storage.datapoints.maxDischargeObjectId": {
-                    "type": "objectId",
-                    "label": "Maximale Entladeleistung (W) – Datenpunkt-ID",
-                    "help": "Nur Modus „Lade/Entlade-Begrenzung“.",
-                    "types": [
-                        "state"
-                    ]
-                },
-                "storage.datapoints.chargeEnableObjectId": {
-                    "type": "objectId",
-                    "label": "Laden erlaubt (Ein/Aus) – Datenpunkt-ID",
-                    "help": "Nur Modus „Ein/Aus“.",
-                    "types": [
-                        "state"
-                    ]
-                },
-                "storage.datapoints.dischargeEnableObjectId": {
-                    "type": "objectId",
-                    "label": "Entladen erlaubt (Ein/Aus) – Datenpunkt-ID",
-                    "help": "Nur Modus „Ein/Aus“.",
-                    "types": [
-                        "state"
-                    ]
-                },
-                "storage.datapoints.reserveSocObjectId": {
-                    "type": "objectId",
-                    "label": "Reserve-SoC (%) – Datenpunkt-ID",
-                    "help": "Optional. Wenn der Speicher eine Reserve direkt unterstützt.",
-                    "types": [
-                        "state"
-                    ]
-                },
-                "divider_storage_info": {
-                    "type": "divider",
-                    "label": "Hinweis"
-                },
-                "storage.info": {
-                    "type": "staticText",
-                    "text": "Diese Zuordnung ist herstellerunabhängig. Der Adapter nutzt die Datenpunkte später für Lastspitzenkappung, Eigenverbrauch, Notstrom-Reserve und Tarif. Der Ladepark bleibt im Adapter und wird gemeinsam mit dem Speicher geregelt."
+                {
+                  "type": "text",
+                  "attr": "note",
+                  "expertMode": true,
+                  "label": "Note",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
                 }
+              ],
+              "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || (!(((data.peakShaving && data.peakShaving.actuationEnabled) ?? data['peakShaving.actuationEnabled'])))",
+              "expertMode": true,
+              "titleAttr": "id",
+              "clone": "id",
+              "validator": "(() => {const peakEn=(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true);const actEn=((((data.peakShaving && data.peakShaving.actuationEnabled) ?? data['peakShaving.actuationEnabled'])) === true);if(!(peakEn && actEn)) return true;const arr=(((data.peakShaving && data.peakShaving.actuators) ?? data['peakShaving.actuators']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const ids=arr.map(a=>a && a.id).filter(Boolean);if(ids.length!==arr.length) return false;if((new Set(ids)).size!==ids.length) return false;return arr.every(a => !!a.setpointId);})()",
+              "validatorErrorText": "Actuators: Add at least one actuator with unique ID and a setpoint State ID.",
+              "validatorNoSaveOnError": true
             }
+          }
         },
-        "tab_multiuse": {
-            "type": "panel",
-            "label": "Multi-Use",
-            "items": {
-                "divider_multiuse_budget": {
-                    "type": "divider",
-                    "label": "Budget / Precedence"
+        "_wizard_step4": {
+          "type": "panel",
+          "label": "Step 4: Charging Management (budget + wallboxes)",
+          "collapsable": true,
+          "items": {
+            "wizard.step4.info": {
+              "type": "staticText",
+              "text": "Define a total charging budget and then add your wallboxes (manufacturer-independent mapping)."
+            },
+            "chargingManagement.totalBudgetMode": {
+              "type": "select",
+              "label": "Total budget mode",
+              "options": [
+                {
+                  "label": "unlimited",
+                  "value": "unlimited"
                 },
-                "multiUse.staleTimeoutSec": {
-                    "type": "number",
-                    "label": "Meter stale timeout (s)",
-                    "min": 0,
-                    "max": 3600
+                {
+                  "label": "static",
+                  "value": "static"
                 },
-                "multiUse.voltageV": {
-                    "type": "number",
-                    "label": "Voltage (V)",
-                    "min": 100,
-                    "max": 260
+                {
+                  "label": "fromPeakShaving",
+                  "value": "fromPeakShaving"
                 },
-                "multiUse.defaultPhases": {
-                    "type": "select",
-                    "label": "Default phases",
-                    "options": [
-                        {
-                            "label": "1",
-                            "value": 1
-                        },
-                        {
-                            "label": "3",
-                            "value": 3
-                        }
-                    ]
+                {
+                  "label": "fromDatapoint",
+                  "value": "fromDatapoint"
                 },
-                "multiUse.externalLimitWKey": {
-                    "type": "text",
-                    "label": "External limit DP key (W)"
-                },
-                "multiUse.tariffBudgetWKey": {
-                    "type": "text",
-                    "label": "Tariff budget DP key (W)"
-                },
-                "multiUse.pvBudgetWKey": {
-                    "type": "text",
-                    "label": "PV budget DP key (W)"
-                },
-                "multiUse.comfortBudgetW": {
-                    "type": "number",
-                    "label": "Comfort budget (W)",
-                    "min": 0,
-                    "max": 2000000
-                },
-                "multiUse.stepA": {
-                    "type": "number",
-                    "label": "Step (A)",
-                    "min": 0,
-                    "max": 10
-                },
-                "multiUse.stepW": {
-                    "type": "number",
-                    "label": "Step (W)",
-                    "min": 0,
-                    "max": 5000
-                },
-                "divider_multiuse_reserve": {
-                    "type": "divider",
-                    "label": "Reserve"
-                },
-                "multiUse.reserveEnabled": {
-                    "type": "checkbox",
-                    "label": "Reserve enabled"
-                },
-                "multiUse.reserveMinW": {
-                    "type": "number",
-                    "label": "Reserve minimum (W)"
-                },
-                "multiUse.consumers": {
-                    "type": "table",
-                    "label": "Consumers (Multi-Use)",
-                    "allowAdd": true,
-                    "allowDelete": true,
-                    "rows": 50,
-                    "items": [
-                        {
-                            "type": "text",
-                            "width": "10%",
-                            "attr": "key",
-                            "title": "Key (unique)"
-                        },
-                        {
-                            "type": "text",
-                            "width": "15%",
-                            "attr": "name",
-                            "title": "Name"
-                        },
-                        {
-                            "type": "select",
-                            "width": "8%",
-                            "attr": "type",
-                            "title": "Type",
-                            "options": [
-                                {
-                                    "label": "EVCS",
-                                    "value": "evcs"
-                                },
-                                {
-                                    "label": "Load",
-                                    "value": "load"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "number",
-                            "width": "8%",
-                            "attr": "priority",
-                            "title": "Priority",
-                            "min": 0,
-                            "max": 100000,
-                            "step": 1
-                        },
-                        {
-                            "type": "select",
-                            "width": "10%",
-                            "attr": "controlBasis",
-                            "title": "Control basis",
-                            "options": [
-                                {
-                                    "label": "Auto",
-                                    "value": "auto"
-                                },
-                                {
-                                    "label": "Current (A)",
-                                    "value": "currentA"
-                                },
-                                {
-                                    "label": "Power (W)",
-                                    "value": "powerW"
-                                },
-                                {
-                                    "label": "None",
-                                    "value": "none"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "text",
-                            "width": "12%",
-                            "attr": "setAKey",
-                            "title": "Setpoint (A) DP-Key"
-                        },
-                        {
-                            "type": "text",
-                            "width": "12%",
-                            "attr": "setWKey",
-                            "title": "Setpoint (W) DP-Key"
-                        },
-                        {
-                            "type": "text",
-                            "width": "12%",
-                            "attr": "enableKey",
-                            "title": "Enable DP-Key"
-                        },
-                        {
-                            "type": "number",
-                            "width": "8%",
-                            "attr": "defaultTargetA",
-                            "title": "Default target (A)",
-                            "step": 0.1
-                        },
-                        {
-                            "type": "number",
-                            "width": "8%",
-                            "attr": "defaultTargetW",
-                            "title": "Default target (W)",
-                            "step": 1
-                        }
-                    ]
+                {
+                  "label": "engine",
+                  "value": "engine"
                 }
+              ],
+              "help": "Defines the total charging budget used for priority distribution.",
+              "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+            },
+            "chargingManagement.staticMaxChargingPowerW": {
+              "type": "number",
+              "label": "Static max charging power (W)",
+              "min": 0,
+              "max": 1000000,
+              "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (((((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode'])) !== 'static'))",
+              "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const mode=(((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode']) ?? 'unlimited');if(mode!=='static') return true;const v=((data.chargingManagement && data.chargingManagement.staticMaxChargingPowerW) ?? data['chargingManagement.staticMaxChargingPowerW']);return Number(v)>0;})()",
+              "validatorErrorText": "Charging: In static budget mode please set Static max charging power (W) > 0.",
+              "validatorNoSaveOnError": true
+            },
+            "chargingManagement.budgetPowerId": {
+              "type": "objectId",
+              "label": "Budget power (W) - State ID (for fromDatapoint)",
+              "help": "If total budget mode is 'fromDatapoint', this state provides the budget in W.",
+              "types": [
+                "state"
+              ],
+              "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (((((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode'])) !== 'fromDatapoint'))",
+              "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const mode=(((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode']) ?? 'unlimited');if(mode!=='fromDatapoint') return true;return !!((data.chargingManagement && data.chargingManagement.budgetPowerId) ?? data['chargingManagement.budgetPowerId']);})()",
+              "validatorErrorText": "Charging: In fromDatapoint budget mode please select Budget power (W) state.",
+              "validatorNoSaveOnError": true
+            },
+            "chargingManagement.wallboxes": {
+              "type": "accordion",
+              "label": "Wallboxes (manufacturer-independent mapping)",
+              "items": [
+                {
+                  "type": "text",
+                  "attr": "key",
+                  "label": "Key (unique)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "text",
+                  "attr": "name",
+                  "label": "Name",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "checkbox",
+                  "attr": "enabled",
+                  "label": "Enabled",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "select",
+                  "options": [
+                    {
+                      "label": "AC",
+                      "value": "AC"
+                    },
+                    {
+                      "label": "DC",
+                      "value": "DC"
+                    }
+                  ],
+                  "attr": "chargerType",
+                  "label": "Charger type",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "select",
+                  "options": [
+                    {
+                      "label": "auto",
+                      "value": "auto"
+                    },
+                    {
+                      "label": "currentA",
+                      "value": "currentA"
+                    },
+                    {
+                      "label": "powerW",
+                      "value": "powerW"
+                    }
+                  ],
+                  "help": "auto: AC uses setCurrentA if present else setPowerW; DC uses setPowerW.",
+                  "attr": "controlBasis",
+                  "label": "Control basis",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "number",
+                  "attr": "priority",
+                  "label": "Priority (1=high)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "select",
+                  "options": [
+                    {
+                      "label": "1",
+                      "value": 1
+                    },
+                    {
+                      "label": "3",
+                      "value": 3
+                    }
+                  ],
+                  "attr": "phases",
+                  "label": "Phases",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "number",
+                  "attr": "minA",
+                  "label": "Min current (A)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "number",
+                  "attr": "maxA",
+                  "label": "Max current (A)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "number",
+                  "min": 0,
+                  "max": 2000000,
+                  "attr": "minPowerW",
+                  "expertMode": true,
+                  "label": "Min power (W)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "number",
+                  "min": 0,
+                  "max": 2000000,
+                  "attr": "maxPowerW",
+                  "expertMode": true,
+                  "label": "Max power (W)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "objectId",
+                  "attr": "actualPowerWId",
+                  "types": [
+                    "state"
+                  ],
+                  "label": "Actual power (W) - State ID",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
+                },
+                {
+                  "type": "objectId",
+                  "attr": "actualCurrentAId",
+                  "types": [
+                    "state"
+                  ],
+                  "expertMode": true,
+                  "label": "Actual current (A) - State ID",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
+                },
+                {
+                  "type": "objectId",
+                  "attr": "setCurrentAId",
+                  "types": [
+                    "state"
+                  ],
+                  "label": "Set current limit (A) - State ID",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
+                },
+                {
+                  "type": "objectId",
+                  "attr": "setPowerWId",
+                  "types": [
+                    "state"
+                  ],
+                  "label": "Set power limit (W) - State ID",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
+                },
+                {
+                  "type": "objectId",
+                  "attr": "enableId",
+                  "types": [
+                    "state"
+                  ],
+                  "label": "Enable/Disable - State ID",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
+                },
+                {
+                  "type": "objectId",
+                  "attr": "statusId",
+                  "types": [
+                    "state"
+                  ],
+                  "expertMode": true,
+                  "label": "Status - State ID",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
+                },
+                {
+                  "type": "objectId",
+                  "attr": "phaseL1AId",
+                  "types": [
+                    "state"
+                  ],
+                  "expertMode": true,
+                  "label": "Phase L1 current (A) - State ID",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
+                },
+                {
+                  "type": "objectId",
+                  "attr": "phaseL2AId",
+                  "types": [
+                    "state"
+                  ],
+                  "expertMode": true,
+                  "label": "Phase L2 current (A) - State ID",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
+                },
+                {
+                  "type": "objectId",
+                  "attr": "phaseL3AId",
+                  "types": [
+                    "state"
+                  ],
+                  "expertMode": true,
+                  "label": "Phase L3 current (A) - State ID",
+                  "xs": 12,
+                  "sm": 12,
+                  "md": 12,
+                  "lg": 12
+                },
+                {
+                  "type": "text",
+                  "attr": "note",
+                  "expertMode": true,
+                  "label": "Note",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                }
+              ],
+              "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+              "titleAttr": "key",
+              "clone": "key",
+              "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const arr=(((data.chargingManagement && data.chargingManagement.wallboxes) ?? data['chargingManagement.wallboxes']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(w=>w && w.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(w => !!w.actualPowerWId && (!!w.setCurrentAId || !!w.setPowerWId));})()",
+              "validatorErrorText": "Wallboxes: Add at least one wallbox with unique Key, Actual power (W) and a setpoint (A or W).",
+              "validatorNoSaveOnError": true
             }
+          }
+        },
+        "_wizard_step5": {
+          "type": "panel",
+          "label": "Step 5: Multi-Use (budgets + consumers)",
+          "collapsable": true,
+          "items": {
+            "wizard.step5.info": {
+              "type": "staticText",
+              "text": "Define budgets (tariff / PV / comfort) and add Multi-Use consumers."
+            },
+            "multiUse.externalLimitWKey": {
+              "type": "text",
+              "label": "External limit DP key (W)",
+              "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+            },
+            "multiUse.tariffBudgetWKey": {
+              "type": "text",
+              "label": "Tariff budget DP key (W)",
+              "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+            },
+            "multiUse.pvBudgetWKey": {
+              "type": "text",
+              "label": "PV budget DP key (W)",
+              "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+            },
+            "multiUse.comfortBudgetW": {
+              "type": "number",
+              "label": "Comfort budget (W)",
+              "min": 0,
+              "max": 2000000,
+              "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+            },
+            "multiUse.consumers": {
+              "type": "accordion",
+              "label": "Consumers (Multi-Use)",
+              "items": [
+                {
+                  "type": "text",
+                  "attr": "key",
+                  "label": "Key (unique)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "text",
+                  "attr": "name",
+                  "label": "Name",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "select",
+                  "attr": "type",
+                  "options": [
+                    {
+                      "label": "EVCS",
+                      "value": "evcs"
+                    },
+                    {
+                      "label": "Load",
+                      "value": "load"
+                    }
+                  ],
+                  "label": "Type",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "number",
+                  "attr": "priority",
+                  "min": 0,
+                  "max": 100000,
+                  "step": 1,
+                  "label": "Priority",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "select",
+                  "attr": "controlBasis",
+                  "options": [
+                    {
+                      "label": "Auto",
+                      "value": "auto"
+                    },
+                    {
+                      "label": "Current (A)",
+                      "value": "currentA"
+                    },
+                    {
+                      "label": "Power (W)",
+                      "value": "powerW"
+                    },
+                    {
+                      "label": "None",
+                      "value": "none"
+                    }
+                  ],
+                  "label": "Control basis",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "text",
+                  "attr": "setAKey",
+                  "label": "Setpoint (A) DP-Key",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "text",
+                  "attr": "setWKey",
+                  "label": "Setpoint (W) DP-Key",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "text",
+                  "attr": "enableKey",
+                  "label": "Enable DP-Key",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "number",
+                  "attr": "defaultTargetA",
+                  "step": 0.1,
+                  "expertMode": true,
+                  "label": "Default target (A)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                },
+                {
+                  "type": "number",
+                  "attr": "defaultTargetW",
+                  "step": 1,
+                  "expertMode": true,
+                  "label": "Default target (W)",
+                  "xs": 12,
+                  "sm": 6,
+                  "md": 4
+                }
+              ],
+              "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
+              "titleAttr": "key",
+              "clone": "key",
+              "validator": "(() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAKey || !!c.setWKey);})()",
+              "validatorErrorText": "Multi-Use consumers: Add at least one consumer with unique Key and a setpoint DP key (A or W).",
+              "validatorNoSaveOnError": true
+            }
+          }
+        },
+        "wizard.outro": {
+          "type": "staticText",
+          "text": "Done. Save the configuration and restart the adapter instance. If something does not work as expected, enable diagnostics in the General tab."
         }
+      }
+    },
+    "tab_general": {
+      "type": "panel",
+      "label": "General",
+      "items": {
+        "enablePeakShaving": {
+          "type": "checkbox",
+          "label": "Enable Peak Shaving"
+        },
+        "enableChargingManagement": {
+          "type": "checkbox",
+          "label": "Enable Charging Management"
+        },
+        "enableMultiUse": {
+          "type": "checkbox",
+          "label": "Enable Multi-Use"
+        },
+        "enableStorageControl": {
+          "type": "checkbox",
+          "label": "Speicher-Steuerung aktivieren",
+          "help": "Aktiviert die Speicher-Anbindung. Ohne Aktivierung schreibt der Adapter keine Werte in den Speicher."
+        },
+        "schedulerIntervalMs": {
+          "type": "number",
+          "label": "Scheduler interval (ms)",
+          "min": 250,
+          "max": 60000,
+          "expertMode": true
+        },
+        "divider_vis": {
+          "type": "divider",
+          "label": "NexoWatt VIS integration",
+          "expertMode": true
+        },
+        "vis.info": {
+          "type": "staticText",
+          "text": "Connect this adapter to NexoWatt VIS. Default: nexowatt-vis.0. Tariff is read from <instance>.settings.*. RFID whitelist is used by Charging Management (MU8.2).",
+          "expertMode": true
+        },
+        "vis.instance": {
+          "type": "text",
+          "label": "NexoWatt VIS instance",
+          "help": "ioBroker instance name of the NexoWatt VIS adapter (e.g. nexowatt-vis.0). Used to read VIS settings under <instance>.settings.*.",
+          "expertMode": true
+        },
+        "vis.rfidWhitelistId": {
+          "type": "objectId",
+          "label": "RFID whitelist (VIS) - State ID",
+          "help": "Select the VIS state that contains the RFID whitelist (e.g. JSON array, CSV, or newline-separated list).",
+          "types": [
+            "state"
+          ],
+          "expertMode": true
+        },
+        "vis.priceCurrentId": {
+          "type": "objectId",
+          "label": "Current tariff price (€/kWh) - State ID (optional)",
+          "help": "Optional: current price from a provider. If set, it is used for the tariff grid-charge gate. If empty, you can still map it via the global datapoints table (tarif.preisAktuellEurProKwh).",
+          "types": [
+            "state"
+          ],
+          "expertMode": true
+        },
+        "divider_diag": {
+          "type": "divider",
+          "label": "Diagnostics",
+          "expertMode": true
+        },
+        "diagnostics.enabled": {
+          "type": "checkbox",
+          "label": "Enable diagnostics logging",
+          "help": "Enables additional debug/info logs and optional diagnostics states.",
+          "expertMode": true
+        },
+        "diagnostics.writeStates": {
+          "type": "checkbox",
+          "label": "Write diagnostics states",
+          "help": "If enabled, diagnostics data is written to adapter states (diagnostics.*)."
+        },
+        "diagnostics.logLevel": {
+          "type": "select",
+          "label": "Diagnostics log level",
+          "options": [
+            {
+              "label": "debug",
+              "value": "debug"
+            },
+            {
+              "label": "info",
+              "value": "info"
+            }
+          ],
+          "help": "Log level used for diagnostics output (adapter log)."
+        },
+        "diagnostics.logIntervalSec": {
+          "type": "number",
+          "label": "Diagnostics log interval (sec)",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "help": "Minimum seconds between diagnostics log lines (0 = every tick)."
+        },
+        "diagnostics.stateIntervalSec": {
+          "type": "number",
+          "label": "Diagnostics state interval (sec)",
+          "min": 0,
+          "max": 3600,
+          "step": 1,
+          "help": "Minimum seconds between writing diagnostics states (0 = every tick).",
+          "expertMode": true,
+          "hidden": "!(((data.diagnostics && data.diagnostics.enabled) ?? data['diagnostics.enabled']))"
+        },
+        "diagnostics.alwaysOnError": {
+          "type": "checkbox",
+          "label": "Always log/write on error",
+          "help": "If a module error occurs, diagnostics are logged/written immediately (ignores intervals).",
+          "expertMode": true,
+          "hidden": "!(((data.diagnostics && data.diagnostics.enabled) ?? data['diagnostics.enabled']))"
+        },
+        "diagnostics.maxJsonLen": {
+          "type": "number",
+          "label": "Diagnostics max JSON length",
+          "min": 1000,
+          "max": 200000,
+          "step": 1000,
+          "help": "Maximum length for JSON written to diagnostics states (prevents oversized states).",
+          "expertMode": true,
+          "hidden": "!(((data.diagnostics && data.diagnostics.enabled) ?? data['diagnostics.enabled']))"
+        }
+      }
+    },
+    "tab_peak": {
+      "type": "panel",
+      "label": "Peak Shaving",
+      "items": {
+        "_peak_disabled_info": {
+          "type": "staticText",
+          "text": "Peak Shaving is disabled. Enable it in the 'General' tab.",
+          "newLine": true,
+          "hidden": "((data.enablePeakShaving) ?? data['enablePeakShaving'])"
+        },
+        "_peak_warn_actuators_invalid": {
+          "type": "staticText",
+          "text": "⚠ Actuators: Please add at least one actuator with unique ID and setpoint.",
+          "style": {
+            "color": "#b00020"
+          },
+          "hidden": "!((((data.enablePeakShaving) ?? data['enablePeakShaving']) === true) && ((((data.peakShaving && data.peakShaving.actuationEnabled) ?? data['peakShaving.actuationEnabled'])) === true)) || (() => {const peakEn=(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true);const actEn=((((data.peakShaving && data.peakShaving.actuationEnabled) ?? data['peakShaving.actuationEnabled'])) === true);if(!(peakEn && actEn)) return true;const arr=(((data.peakShaving && data.peakShaving.actuators) ?? data['peakShaving.actuators']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const ids=arr.map(a=>a && a.id).filter(Boolean);if(ids.length!==arr.length) return false;if((new Set(ids)).size!==ids.length) return false;return arr.every(a => !!a.setpointId);})()",
+          "newLine": true
+        },
+        "_peak_warn_grid_missing": {
+          "type": "staticText",
+          "text": "⚠ Peak Shaving: Please select 'Grid point power (W) - State ID'.",
+          "style": {
+            "color": "#b00020"
+          },
+          "hidden": "!(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true) || !!((data.peakShaving && data.peakShaving.gridPointPowerId) ?? data['peakShaving.gridPointPowerId'])",
+          "newLine": true
+        },
+        "peakShaving.mode": {
+          "type": "select",
+          "label": "Mode",
+          "options": [
+            {
+              "label": "static",
+              "value": "static"
+            },
+            {
+              "label": "dynamic",
+              "value": "dynamic"
+            }
+          ],
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])"
+        },
+        "peakShaving.gridPointPowerId": {
+          "type": "objectId",
+          "label": "Grid point power (W) - State ID",
+          "types": [
+            "state"
+          ],
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+          "validator": "!(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true) || !!((data.peakShaving && data.peakShaving.gridPointPowerId) ?? data['peakShaving.gridPointPowerId'])",
+          "validatorErrorText": "Peak Shaving: Please select the grid power state (W).",
+          "validatorNoSaveOnError": true
+        },
+        "peakShaving.staleTimeoutSec": {
+          "type": "number",
+          "label": "Meter stale timeout (s)",
+          "help": "If meter values are older than this, Peak Shaving enters failsafe (STALE_METER) and will not release.",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])"
+        },
+        "peakShaving.maxPowerW": {
+          "type": "number",
+          "label": "Max power (W)",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+          "validator": "(() => {const en=(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true);if(!en) return true;const mode=(((data.peakShaving && data.peakShaving.mode) ?? data['peakShaving.mode']) ?? 'static');if(mode!=='static') return true;const v=((data.peakShaving && data.peakShaving.maxPowerW) ?? data['peakShaving.maxPowerW']);return Number(v)>0;})()",
+          "validatorErrorText": "Peak Shaving: In static mode please set Max power (W) > 0.",
+          "validatorNoSaveOnError": true
+        },
+        "peakShaving.safetyMarginW": {
+          "type": "number",
+          "label": "Safety margin (W)",
+          "help": "Subtracts from the max power limit to keep headroom for meter delay and load spikes.",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])"
+        },
+        "peakShaving.hysteresisW": {
+          "type": "number",
+          "label": "Hysteresis (W)",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])"
+        },
+        "peakShaving.activateDelaySeconds": {
+          "type": "number",
+          "label": "Activate delay (s)",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])"
+        },
+        "peakShaving.releaseDelaySeconds": {
+          "type": "number",
+          "label": "Release delay (s)",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])"
+        },
+        "peakShaving.useAverage": {
+          "type": "checkbox",
+          "label": "Use average for decision",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+          "expertMode": true
+        },
+        "peakShaving.maxPhaseA": {
+          "type": "number",
+          "label": "Max current per phase (A)",
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.phaseMode) ?? data['peakShaving.phaseMode']) === 'off'))",
+          "expertMode": true
+        },
+        "peakShaving.phaseMode": {
+          "type": "select",
+          "label": "Phase decision mode",
+          "options": [
+            {
+              "label": "off",
+              "value": "off"
+            },
+            {
+              "label": "info",
+              "value": "info"
+            },
+            {
+              "label": "enforce",
+              "value": "enforce"
+            }
+          ],
+          "help": "When 'enforce', phase current limits can activate peak shaving even without a power limit.",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+          "expertMode": true
+        },
+        "peakShaving.hysteresisA": {
+          "type": "number",
+          "label": "Hysteresis per phase (A)",
+          "help": "Release threshold: maxPhaseA - hysteresisA.",
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.phaseMode) ?? data['peakShaving.phaseMode']) === 'off'))",
+          "expertMode": true
+        },
+        "peakShaving.voltageV": {
+          "type": "number",
+          "label": "Voltage (V)",
+          "help": "Used to estimate required reduction from phase over-current.",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+          "expertMode": true
+        },
+        "peakShaving.smoothingSeconds": {
+          "type": "number",
+          "label": "Smoothing window (s)",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+          "expertMode": true
+        },
+        "peakShaving.fastTripEnabled": {
+          "type": "checkbox",
+          "label": "Fast trip enabled",
+          "help": "If enabled, Peak Shaving can activate immediately on spikes, bypassing activate delay.",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+          "expertMode": true
+        },
+        "peakShaving.fastTripMode": {
+          "type": "select",
+          "label": "Fast trip mode",
+          "options": [
+            {
+              "label": "max (window)",
+              "value": "max"
+            },
+            {
+              "label": "raw (current)",
+              "value": "raw"
+            }
+          ],
+          "help": "Select spike detector: max of recent window or current raw value.",
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || (!(((data.peakShaving && data.peakShaving.fastTripEnabled) ?? data['peakShaving.fastTripEnabled'])))",
+          "expertMode": true
+        },
+        "divider_peak_dynamic": {
+          "type": "divider",
+          "label": "Dynamic Mode Inputs (optional)",
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.mode) ?? data['peakShaving.mode']) !== 'dynamic'))"
+        },
+        "peakShaving.allowedPowerId": {
+          "type": "objectId",
+          "label": "Allowed max power (W) - State ID (optional)",
+          "help": "Optional external limit (e.g. grid signal). In dynamic mode the effective limit is min(Max power, Allowed max power) minus Reserve.",
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.mode) ?? data['peakShaving.mode']) !== 'dynamic'))"
+        },
+        "peakShaving.reserveW": {
+          "type": "number",
+          "label": "Reserve (W)",
+          "help": "Reserve that is subtracted from the effective limit in dynamic mode (e.g. keep headroom).",
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.mode) ?? data['peakShaving.mode']) !== 'dynamic'))"
+        },
+        "peakShaving.baseLoadPowerId": {
+          "type": "objectId",
+          "label": "Base load / house consumption (W) - State ID (optional)",
+          "help": "If set, the adapter also calculates the target power for controlled loads: availableForControlledW = effectiveLimit - (baseLoad - PV - Battery).",
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.mode) ?? data['peakShaving.mode']) !== 'dynamic'))",
+          "expertMode": true
+        },
+        "peakShaving.pvPowerId": {
+          "type": "objectId",
+          "label": "PV power (W) - State ID (optional)",
+          "help": "PV generation power (W), positive. Used only for availableForControlledW calculation.",
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.mode) ?? data['peakShaving.mode']) !== 'dynamic'))",
+          "expertMode": true
+        },
+        "peakShaving.batteryPowerId": {
+          "type": "objectId",
+          "label": "Battery power (W) - State ID (optional)",
+          "help": "Battery discharge power (W), positive. Used only for availableForControlledW calculation.",
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.mode) ?? data['peakShaving.mode']) !== 'dynamic'))",
+          "expertMode": true
+        },
+        "peakShaving.l1CurrentId": {
+          "type": "objectId",
+          "label": "Phase L1 current (A) - State ID",
+          "help": "ioBroker state ID (optional). Leave empty if you map via global datapoints.",
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.phaseMode) ?? data['peakShaving.phaseMode']) === 'off'))",
+          "expertMode": true
+        },
+        "peakShaving.l2CurrentId": {
+          "type": "objectId",
+          "label": "Phase L2 current (A) - State ID",
+          "help": "ioBroker state ID (optional). Leave empty if you map via global datapoints.",
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.phaseMode) ?? data['peakShaving.phaseMode']) === 'off'))",
+          "expertMode": true
+        },
+        "peakShaving.l3CurrentId": {
+          "type": "objectId",
+          "label": "Phase L3 current (A) - State ID",
+          "help": "ioBroker state ID (optional). Leave empty if you map via global datapoints.",
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || ((((data.peakShaving && data.peakShaving.phaseMode) ?? data['peakShaving.phaseMode']) === 'off'))",
+          "expertMode": true
+        },
+        "divider_peak_actuation": {
+          "type": "divider",
+          "label": "Actuation (controlled loads / wallboxes)",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+          "expertMode": true
+        },
+        "peakShaving.actuationEnabled": {
+          "type": "checkbox",
+          "label": "Enable actuation (apply reductions to actuators)",
+          "hidden": "!((data.enablePeakShaving) ?? data['enablePeakShaving'])",
+          "expertMode": true
+        },
+        "peakShaving.actuators": {
+          "type": "accordion",
+          "label": "Actuators (controlled loads / wallboxes)",
+          "items": [
+            {
+              "type": "objectId",
+              "attr": "id",
+              "types": [
+                "state"
+              ],
+              "label": "ID (unique)",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "text",
+              "attr": "name",
+              "label": "Name",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "checkbox",
+              "attr": "enabled",
+              "label": "Enabled",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "min": 1,
+              "max": 999,
+              "attr": "priority",
+              "label": "Priority (1=high)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "select",
+              "options": [
+                {
+                  "label": "Limit power (W)",
+                  "value": "limitW"
+                },
+                {
+                  "label": "Limit current (A)",
+                  "value": "limitA"
+                },
+                {
+                  "label": "On/Off",
+                  "value": "onOff"
+                }
+              ],
+              "attr": "mode",
+              "label": "Mode",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "select",
+              "options": [
+                {
+                  "label": "1",
+                  "value": "1"
+                },
+                {
+                  "label": "3",
+                  "value": "3"
+                }
+              ],
+              "attr": "phases",
+              "expertMode": true,
+              "label": "Phases",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "attr": "min",
+              "expertMode": true,
+              "label": "Min (W/A)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "attr": "max",
+              "expertMode": true,
+              "label": "Max (W/A)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "objectId",
+              "attr": "setpointId",
+              "types": [
+                "state"
+              ],
+              "label": "Setpoint State ID (W or A)",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "objectId",
+              "attr": "measurePowerId",
+              "types": [
+                "state"
+              ],
+              "label": "Measured power (W) - State ID (optional)",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "objectId",
+              "attr": "enableId",
+              "types": [
+                "state"
+              ],
+              "label": "Enable/OnOff State ID (optional)",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "text",
+              "attr": "note",
+              "expertMode": true,
+              "label": "Note",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            }
+          ],
+          "hidden": "(!((data.enablePeakShaving) ?? data['enablePeakShaving'])) || (!(((data.peakShaving && data.peakShaving.actuationEnabled) ?? data['peakShaving.actuationEnabled'])))",
+          "expertMode": true,
+          "titleAttr": "id",
+          "clone": "id",
+          "validator": "(() => {const peakEn=(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true);const actEn=((((data.peakShaving && data.peakShaving.actuationEnabled) ?? data['peakShaving.actuationEnabled'])) === true);if(!(peakEn && actEn)) return true;const arr=(((data.peakShaving && data.peakShaving.actuators) ?? data['peakShaving.actuators']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const ids=arr.map(a=>a && a.id).filter(Boolean);if(ids.length!==arr.length) return false;if((new Set(ids)).size!==ids.length) return false;return arr.every(a => !!a.setpointId);})()",
+          "validatorErrorText": "Actuators: Add at least one actuator with unique ID and a setpoint State ID.",
+          "validatorNoSaveOnError": true
+        }
+      }
+    },
+    "tab_charging": {
+      "type": "panel",
+      "label": "Charging Management",
+      "items": {
+        "_charging_disabled_info": {
+          "type": "staticText",
+          "text": "Charging Management is disabled. Enable it in the 'General' tab.",
+          "newLine": true,
+          "hidden": "((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+        },
+        "_charging_warn_wallboxes_invalid": {
+          "type": "staticText",
+          "text": "⚠ Wallboxes: Add at least one wallbox with unique Key, Actual power (W) and a setpoint (A or W).",
+          "style": {
+            "color": "#b00020"
+          },
+          "hidden": "!(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true) || (() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const arr=(((data.chargingManagement && data.chargingManagement.wallboxes) ?? data['chargingManagement.wallboxes']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(w=>w && w.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(w => !!w.actualPowerWId && (!!w.setCurrentAId || !!w.setPowerWId));})()",
+          "newLine": true
+        },
+        "chargingManagement.mode": {
+          "type": "select",
+          "label": "Mode",
+          "options": [
+            {
+              "label": "off",
+              "value": "off"
+            },
+            {
+              "label": "pvSurplus",
+              "value": "pvSurplus"
+            },
+            {
+              "label": "mixed",
+              "value": "mixed"
+            }
+          ],
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+        },
+        "chargingManagement.pvSurplusOnly": {
+          "type": "checkbox",
+          "label": "PV surplus only",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+        },
+        "chargingManagement.boostEnabled": {
+          "type": "checkbox",
+          "label": "Boost enabled",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "divider_charging_budget": {
+          "type": "divider",
+          "label": "Budget / Priorities",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+        },
+        "chargingManagement.totalBudgetMode": {
+          "type": "select",
+          "label": "Total budget mode",
+          "options": [
+            {
+              "label": "unlimited",
+              "value": "unlimited"
+            },
+            {
+              "label": "static",
+              "value": "static"
+            },
+            {
+              "label": "fromPeakShaving",
+              "value": "fromPeakShaving"
+            },
+            {
+              "label": "fromDatapoint",
+              "value": "fromDatapoint"
+            },
+            {
+              "label": "engine",
+              "value": "engine"
+            }
+          ],
+          "help": "Defines the total charging budget used for priority distribution.",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+        },
+        "chargingManagement.staticMaxChargingPowerW": {
+          "type": "number",
+          "label": "Static max charging power (W)",
+          "min": 0,
+          "max": 1000000,
+          "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (((((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode'])) !== 'static'))",
+          "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const mode=(((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode']) ?? 'unlimited');if(mode!=='static') return true;const v=((data.chargingManagement && data.chargingManagement.staticMaxChargingPowerW) ?? data['chargingManagement.staticMaxChargingPowerW']);return Number(v)>0;})()",
+          "validatorErrorText": "Charging: In static budget mode please set Static max charging power (W) > 0.",
+          "validatorNoSaveOnError": true
+        },
+        "chargingManagement.budgetPowerId": {
+          "type": "objectId",
+          "label": "Budget power (W) - State ID (for fromDatapoint)",
+          "help": "If total budget mode is 'fromDatapoint', this state provides the budget in W.",
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (((((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode'])) !== 'fromDatapoint'))",
+          "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const mode=(((data.chargingManagement && data.chargingManagement.totalBudgetMode) ?? data['chargingManagement.totalBudgetMode']) ?? 'unlimited');if(mode!=='fromDatapoint') return true;return !!((data.chargingManagement && data.chargingManagement.budgetPowerId) ?? data['chargingManagement.budgetPowerId']);})()",
+          "validatorErrorText": "Charging: In fromDatapoint budget mode please select Budget power (W) state.",
+          "validatorNoSaveOnError": true
+        },
+        "chargingManagement.pauseWhenPeakShavingActive": {
+          "type": "checkbox",
+          "label": "Pause charging management when Peak Shaving is active",
+          "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (!(((data.enablePeakShaving) ?? data['enablePeakShaving']) === true))",
+          "expertMode": true
+        },
+        "chargingManagement.pauseBehavior": {
+          "type": "select",
+          "label": "Pause behavior",
+          "options": [
+            {
+              "label": "rampDownToZero",
+              "value": "rampDownToZero"
+            },
+            {
+              "label": "followPeakBudget",
+              "value": "followPeakBudget"
+            }
+          ],
+          "help": "When paused by Peak Shaving: ramp down to 0 (safest) or follow Peak Shaving available budget.",
+          "hidden": "(!((data.enableChargingManagement) ?? data['enableChargingManagement'])) || (!((((data.chargingManagement && data.chargingManagement.pauseWhenPeakShavingActive) ?? data['chargingManagement.pauseWhenPeakShavingActive']) === true) && (((data.enablePeakShaving) ?? data['enablePeakShaving']) === true)))",
+          "expertMode": true
+        },
+        "chargingManagement.staleTimeoutSec": {
+          "type": "number",
+          "label": "Meter stale timeout (s)",
+          "help": "If meter/budget values are older than this, Charging Management forces safe targets (STALE_METER).",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "chargingManagement.defaultPhases": {
+          "type": "select",
+          "label": "Default phases",
+          "options": [
+            {
+              "label": "1",
+              "value": 1
+            },
+            {
+              "label": "3",
+              "value": 3
+            }
+          ],
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+        },
+        "chargingManagement.voltageV": {
+          "type": "number",
+          "label": "Voltage (V)",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "chargingManagement.acMinPower3pW": {
+          "type": "number",
+          "label": "AC 3p min power (W)",
+          "min": 0,
+          "max": 1000000,
+          "help": "Minimum target power for 3-phase AC wallboxes. Typical: 4200 W.",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "chargingManagement.activityThresholdW": {
+          "type": "number",
+          "label": "Activity threshold (W)",
+          "min": 0,
+          "max": 1000000,
+          "help": "A wallbox is considered 'charging' if its measured power is >= this threshold.",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "chargingManagement.stopGraceSec": {
+          "type": "number",
+          "label": "Stop grace (s)",
+          "min": 0,
+          "max": 3600,
+          "help": "Keep a wallbox in 'charging' state for this duration after power drops below threshold (prevents flapping).",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "chargingManagement.sessionKeepSec": {
+          "type": "number",
+          "label": "Session keep time (s)",
+          "min": 0,
+          "max": 86400,
+          "help": "Keep the charging session timestamp for this duration after a charging session stops. If it resumes within this window, it keeps its original arrival order.",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "chargingManagement.minCurrentA": {
+          "type": "number",
+          "label": "Default min current (A)",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+        },
+        "chargingManagement.maxCurrentA": {
+          "type": "number",
+          "label": "Default max current (A)",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])"
+        },
+        "chargingManagement.maxDeltaWPerTick": {
+          "type": "number",
+          "label": "Max delta per tick (W)",
+          "help": "Limits ramp-up per control cycle. Ramp-down is always immediate for safety.",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "chargingManagement.maxDeltaAPerTick": {
+          "type": "number",
+          "label": "Max delta per tick (A)",
+          "help": "Limits ramp-up per control cycle in amperes. Ramp-down is always immediate for safety.",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "chargingManagement.stepW": {
+          "type": "number",
+          "label": "Step (W)",
+          "help": "Quantize setpoints to this step size (rounded down). Set 0 to disable.",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "chargingManagement.stepA": {
+          "type": "number",
+          "label": "Step (A)",
+          "help": "Quantize current setpoints to this step size (rounded down). Set 0 to disable.",
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "expertMode": true
+        },
+        "chargingManagement.wallboxes": {
+          "type": "accordion",
+          "label": "Wallboxes (manufacturer-independent mapping)",
+          "items": [
+            {
+              "type": "text",
+              "attr": "key",
+              "label": "Key (unique)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "text",
+              "attr": "name",
+              "label": "Name",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "checkbox",
+              "attr": "enabled",
+              "label": "Enabled",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "select",
+              "options": [
+                {
+                  "label": "AC",
+                  "value": "AC"
+                },
+                {
+                  "label": "DC",
+                  "value": "DC"
+                }
+              ],
+              "attr": "chargerType",
+              "label": "Charger type",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "select",
+              "options": [
+                {
+                  "label": "auto",
+                  "value": "auto"
+                },
+                {
+                  "label": "currentA",
+                  "value": "currentA"
+                },
+                {
+                  "label": "powerW",
+                  "value": "powerW"
+                }
+              ],
+              "help": "auto: AC uses setCurrentA if present else setPowerW; DC uses setPowerW.",
+              "attr": "controlBasis",
+              "label": "Control basis",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "attr": "priority",
+              "label": "Priority (1=high)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "select",
+              "options": [
+                {
+                  "label": "1",
+                  "value": 1
+                },
+                {
+                  "label": "3",
+                  "value": 3
+                }
+              ],
+              "attr": "phases",
+              "label": "Phases",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "attr": "minA",
+              "label": "Min current (A)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "attr": "maxA",
+              "label": "Max current (A)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "min": 0,
+              "max": 2000000,
+              "attr": "minPowerW",
+              "expertMode": true,
+              "label": "Min power (W)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "min": 0,
+              "max": 2000000,
+              "attr": "maxPowerW",
+              "expertMode": true,
+              "label": "Max power (W)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "objectId",
+              "attr": "actualPowerWId",
+              "types": [
+                "state"
+              ],
+              "label": "Actual power (W) - State ID",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "objectId",
+              "attr": "actualCurrentAId",
+              "types": [
+                "state"
+              ],
+              "expertMode": true,
+              "label": "Actual current (A) - State ID",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "objectId",
+              "attr": "setCurrentAId",
+              "types": [
+                "state"
+              ],
+              "label": "Set current limit (A) - State ID",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "objectId",
+              "attr": "setPowerWId",
+              "types": [
+                "state"
+              ],
+              "label": "Set power limit (W) - State ID",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "objectId",
+              "attr": "enableId",
+              "types": [
+                "state"
+              ],
+              "label": "Enable/Disable - State ID",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "objectId",
+              "attr": "statusId",
+              "types": [
+                "state"
+              ],
+              "expertMode": true,
+              "label": "Status - State ID",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "objectId",
+              "attr": "phaseL1AId",
+              "types": [
+                "state"
+              ],
+              "expertMode": true,
+              "label": "Phase L1 current (A) - State ID",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "objectId",
+              "attr": "phaseL2AId",
+              "types": [
+                "state"
+              ],
+              "expertMode": true,
+              "label": "Phase L2 current (A) - State ID",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "objectId",
+              "attr": "phaseL3AId",
+              "types": [
+                "state"
+              ],
+              "expertMode": true,
+              "label": "Phase L3 current (A) - State ID",
+              "xs": 12,
+              "sm": 12,
+              "md": 12,
+              "lg": 12
+            },
+            {
+              "type": "text",
+              "attr": "note",
+              "expertMode": true,
+              "label": "Note",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            }
+          ],
+          "hidden": "!((data.enableChargingManagement) ?? data['enableChargingManagement'])",
+          "titleAttr": "key",
+          "clone": "key",
+          "validator": "(() => {const en=(((data.enableChargingManagement) ?? data['enableChargingManagement']) === true);if(!en) return true;const arr=(((data.chargingManagement && data.chargingManagement.wallboxes) ?? data['chargingManagement.wallboxes']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(w=>w && w.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(w => !!w.actualPowerWId && (!!w.setCurrentAId || !!w.setPowerWId));})()",
+          "validatorErrorText": "Wallboxes: Add at least one wallbox with unique Key, Actual power (W) and a setpoint (A or W).",
+          "validatorNoSaveOnError": true
+        }
+      }
+    },
+    "tab_storage": {
+      "type": "panel",
+      "label": "Speicher",
+      "items": {
+        "_storage_disabled_info": {
+          "type": "staticText",
+          "text": "Storage control is disabled. Enable it in the 'General' tab.",
+          "newLine": true,
+          "hidden": "((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "divider_storage_mode": {
+          "type": "divider",
+          "label": "Speicher-Steuerung",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.controlMode": {
+          "type": "select",
+          "label": "Steuerungsart Speicher",
+          "options": [
+            {
+              "label": "Sollleistung (W)",
+              "value": "targetPower"
+            },
+            {
+              "label": "Lade/Entlade-Begrenzung",
+              "value": "limits"
+            },
+            {
+              "label": "Ein/Aus",
+              "value": "enableFlags"
+            },
+            {
+              "label": "Nur Anzeige",
+              "value": "readOnly"
+            }
+          ],
+          "help": "Wähle, wie der Speicher angesteuert werden kann. Die benötigten Datenpunkte hängen vom Modus ab.",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "divider_storage_dps": {
+          "type": "divider",
+          "label": "Speicher-Datenpunkte (Installateur)",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.datapoints.socObjectId": {
+          "type": "objectId",
+          "label": "Speicher Ladezustand (SoC) – Datenpunkt-ID",
+          "help": "Pflicht. Prozentwert 0–100.",
+          "types": [
+            "state"
+          ],
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.datapoints.socScale": {
+          "type": "number",
+          "label": "SoC Umrechnungsfaktor",
+          "help": "Standard 1. Beispiel: Wenn der Speicher 0–1 liefert, dann 100 eintragen.",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.datapoints.batteryPowerObjectId": {
+          "type": "objectId",
+          "label": "Speicher Ist-Leistung (W) – Datenpunkt-ID",
+          "help": "Optional. Hilft für Diagnose und spätere Regelung.",
+          "types": [
+            "state"
+          ],
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.datapoints.batteryPowerScale": {
+          "type": "number",
+          "label": "Ist-Leistung Umrechnungsfaktor",
+          "help": "Standard 1. Beispiel: kW → W = 1000.",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.datapoints.batteryPowerInvert": {
+          "type": "checkbox",
+          "label": "Ist-Leistung Vorzeichen umdrehen",
+          "help": "Aktivieren, wenn Laden/Entladen im Datenpunkt anders herum ist.",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "divider_storage_write": {
+          "type": "divider",
+          "label": "Schreib-Datenpunkte (je nach Modus)",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'readOnly'))"
+        },
+        "divider_storage_regelung": {
+          "type": "divider",
+          "label": "Speicher-Regelung",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'readOnly'))"
+        },
+        "storage.staleTimeoutSec": {
+          "type": "number",
+          "label": "Messwert-Timeout (Sekunden)",
+          "help": "Wenn Messwerte älter sind als dieser Wert, wird der Speicher auf 0 gesetzt (Sicherheit).",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'readOnly'))",
+          "expertMode": true
+        },
+        "storage.maxChargeW": {
+          "type": "number",
+          "label": "Maximale Ladeleistung (W)",
+          "help": "Begrenzung für Lade-Leistung, wenn der Adapter aktiv regelt (Sollleistung).",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'readOnly'))"
+        },
+        "storage.maxDischargeW": {
+          "type": "number",
+          "label": "Maximale Entladeleistung (W)",
+          "help": "Begrenzung für Entlade-Leistung, wenn der Adapter aktiv regelt (Sollleistung).",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'readOnly'))"
+        },
+        "storage.stepW": {
+          "type": "number",
+          "label": "Schrittweite (W)",
+          "help": "Rundet die Sollleistung auf diese Schrittweite. 0 = keine Rundung.",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'readOnly'))",
+          "expertMode": true
+        },
+        "storage.maxDeltaWPerTick": {
+          "type": "number",
+          "label": "Maximale Änderung je Takt (W)",
+          "help": "Begrenzt, wie schnell sich die Sollleistung pro Takt ändern darf.",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'readOnly'))",
+          "expertMode": true
+        },
+        "divider_storage_reserve": {
+          "type": "divider",
+          "label": "Notstrom-Reserve",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.reserveEnabled": {
+          "type": "checkbox",
+          "label": "Notstrom-Reserve aktivieren",
+          "help": "Wenn aktiv, wird Entladen unterhalb des Mindest-SoC verhindert.",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.reserveMinSocPct": {
+          "type": "number",
+          "label": "Mindest-SoC für Entladen (%)",
+          "help": "Unterhalb dieses SoC entlädt der Adapter den Speicher nicht mehr.",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (!(((data.storage && data.storage.reserveEnabled) ?? data['storage.reserveEnabled']) === true))"
+        },
+        "divider_storage_pv": {
+          "type": "divider",
+          "label": "Eigenverbrauch (PV)",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.pvEnabled": {
+          "type": "checkbox",
+          "label": "PV-Überschuss laden",
+          "help": "Wenn aktiv, lädt der Adapter bei Netz-Einspeisung (negativer Netzbezug) den Speicher.",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.pvExportThresholdW": {
+          "type": "number",
+          "label": "PV-Überschuss-Schwelle (W)",
+          "help": "Erst ab dieser Einspeiseleistung wird geladen (zur Vermeidung von Flattern).",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (!(((data.storage && data.storage.pvEnabled) ?? data['storage.pvEnabled']) === true))",
+          "expertMode": true
+        },
+        "storage.datapoints.targetPowerObjectId": {
+          "type": "objectId",
+          "label": "Speicher Sollleistung (W) – Datenpunkt-ID",
+          "help": "Nur Modus „Sollleistung (W)“. Empfehlung: negativ = Laden, positiv = Entladen (bei Bedarf Vorzeichen umdrehen).",
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (!((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'targetPower'))"
+        },
+        "storage.datapoints.targetPowerScale": {
+          "type": "number",
+          "label": "Sollleistung Umrechnungsfaktor",
+          "help": "Standard 1. Beispiel: kW → W = 1000.",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (!((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'targetPower'))",
+          "expertMode": true
+        },
+        "storage.datapoints.targetPowerInvert": {
+          "type": "checkbox",
+          "label": "Sollleistung Vorzeichen umdrehen",
+          "help": "Aktivieren, wenn der Speicher eine andere Vorzeichen-Regel erwartet.",
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (!((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'targetPower'))",
+          "expertMode": true
+        },
+        "storage.datapoints.maxChargeObjectId": {
+          "type": "objectId",
+          "label": "Maximale Ladeleistung (W) – Datenpunkt-ID",
+          "help": "Nur Modus „Lade/Entlade-Begrenzung“.",
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (!((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'limits'))"
+        },
+        "storage.datapoints.maxDischargeObjectId": {
+          "type": "objectId",
+          "label": "Maximale Entladeleistung (W) – Datenpunkt-ID",
+          "help": "Nur Modus „Lade/Entlade-Begrenzung“.",
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (!((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'limits'))"
+        },
+        "storage.datapoints.chargeEnableObjectId": {
+          "type": "objectId",
+          "label": "Laden erlaubt (Ein/Aus) – Datenpunkt-ID",
+          "help": "Nur Modus „Ein/Aus“.",
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (!((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'enableFlags'))"
+        },
+        "storage.datapoints.dischargeEnableObjectId": {
+          "type": "objectId",
+          "label": "Entladen erlaubt (Ein/Aus) – Datenpunkt-ID",
+          "help": "Nur Modus „Ein/Aus“.",
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (!((((data.storage && data.storage.controlMode) ?? data['storage.controlMode'])) === 'enableFlags'))"
+        },
+        "storage.datapoints.reserveSocObjectId": {
+          "type": "objectId",
+          "label": "Reserve-SoC (%) – Datenpunkt-ID",
+          "help": "Optional. Wenn der Speicher eine Reserve direkt unterstützt.",
+          "types": [
+            "state"
+          ],
+          "hidden": "(!((data.enableStorageControl) ?? data['enableStorageControl'])) || (!(((data.storage && data.storage.reserveEnabled) ?? data['storage.reserveEnabled']) === true))",
+          "expertMode": true
+        },
+        "divider_storage_info": {
+          "type": "divider",
+          "label": "Hinweis",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        },
+        "storage.info": {
+          "type": "staticText",
+          "text": "Diese Zuordnung ist herstellerunabhängig. Der Adapter nutzt die Datenpunkte später für Lastspitzenkappung, Eigenverbrauch, Notstrom-Reserve und Tarif. Der Ladepark bleibt im Adapter und wird gemeinsam mit dem Speicher geregelt.",
+          "hidden": "!((data.enableStorageControl) ?? data['enableStorageControl'])"
+        }
+      }
+    },
+    "tab_multiuse": {
+      "type": "panel",
+      "label": "Multi-Use",
+      "items": {
+        "_multiuse_disabled_info": {
+          "type": "staticText",
+          "text": "Multi-Use is disabled. Enable it in the 'General' tab.",
+          "newLine": true,
+          "hidden": "((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+        "_mu_warn_consumers_invalid": {
+          "type": "staticText",
+          "text": "⚠ Multi-Use: Add at least one consumer with unique Key and a setpoint DP key (A or W).",
+          "style": {
+            "color": "#b00020"
+          },
+          "hidden": "!(((data.enableMultiUse) ?? data['enableMultiUse']) === true) || (() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAKey || !!c.setWKey);})()",
+          "newLine": true
+        },
+        "divider_multiuse_budget": {
+          "type": "divider",
+          "label": "Budget / Precedence",
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+        "multiUse.staleTimeoutSec": {
+          "type": "number",
+          "label": "Meter stale timeout (s)",
+          "min": 0,
+          "max": 3600,
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
+          "expertMode": true
+        },
+        "multiUse.voltageV": {
+          "type": "number",
+          "label": "Voltage (V)",
+          "min": 100,
+          "max": 260,
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
+          "expertMode": true
+        },
+        "multiUse.defaultPhases": {
+          "type": "select",
+          "label": "Default phases",
+          "options": [
+            {
+              "label": "1",
+              "value": 1
+            },
+            {
+              "label": "3",
+              "value": 3
+            }
+          ],
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
+          "expertMode": true
+        },
+        "multiUse.externalLimitWKey": {
+          "type": "text",
+          "label": "External limit DP key (W)",
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+        "multiUse.tariffBudgetWKey": {
+          "type": "text",
+          "label": "Tariff budget DP key (W)",
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+        "multiUse.pvBudgetWKey": {
+          "type": "text",
+          "label": "PV budget DP key (W)",
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+        "multiUse.comfortBudgetW": {
+          "type": "number",
+          "label": "Comfort budget (W)",
+          "min": 0,
+          "max": 2000000,
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+        "multiUse.stepA": {
+          "type": "number",
+          "label": "Step (A)",
+          "min": 0,
+          "max": 10,
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
+          "expertMode": true
+        },
+        "multiUse.stepW": {
+          "type": "number",
+          "label": "Step (W)",
+          "min": 0,
+          "max": 5000,
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
+          "expertMode": true
+        },
+        "divider_multiuse_reserve": {
+          "type": "divider",
+          "label": "Reserve",
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+        "multiUse.reserveEnabled": {
+          "type": "checkbox",
+          "label": "Reserve enabled",
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])"
+        },
+        "multiUse.reserveMinW": {
+          "type": "number",
+          "label": "Reserve minimum (W)",
+          "hidden": "(!((data.enableMultiUse) ?? data['enableMultiUse'])) || (!(((data.multiUse && data.multiUse.reserveEnabled) ?? data['multiUse.reserveEnabled']) === true))"
+        },
+        "multiUse.consumers": {
+          "type": "accordion",
+          "label": "Consumers (Multi-Use)",
+          "items": [
+            {
+              "type": "text",
+              "attr": "key",
+              "label": "Key (unique)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "text",
+              "attr": "name",
+              "label": "Name",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "select",
+              "attr": "type",
+              "options": [
+                {
+                  "label": "EVCS",
+                  "value": "evcs"
+                },
+                {
+                  "label": "Load",
+                  "value": "load"
+                }
+              ],
+              "label": "Type",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "attr": "priority",
+              "min": 0,
+              "max": 100000,
+              "step": 1,
+              "label": "Priority",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "select",
+              "attr": "controlBasis",
+              "options": [
+                {
+                  "label": "Auto",
+                  "value": "auto"
+                },
+                {
+                  "label": "Current (A)",
+                  "value": "currentA"
+                },
+                {
+                  "label": "Power (W)",
+                  "value": "powerW"
+                },
+                {
+                  "label": "None",
+                  "value": "none"
+                }
+              ],
+              "label": "Control basis",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "text",
+              "attr": "setAKey",
+              "label": "Setpoint (A) DP-Key",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "text",
+              "attr": "setWKey",
+              "label": "Setpoint (W) DP-Key",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "text",
+              "attr": "enableKey",
+              "label": "Enable DP-Key",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "attr": "defaultTargetA",
+              "step": 0.1,
+              "expertMode": true,
+              "label": "Default target (A)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            },
+            {
+              "type": "number",
+              "attr": "defaultTargetW",
+              "step": 1,
+              "expertMode": true,
+              "label": "Default target (W)",
+              "xs": 12,
+              "sm": 6,
+              "md": 4
+            }
+          ],
+          "hidden": "!((data.enableMultiUse) ?? data['enableMultiUse'])",
+          "titleAttr": "key",
+          "clone": "key",
+          "validator": "(() => {const en=(((data.enableMultiUse) ?? data['enableMultiUse']) === true);if(!en) return true;const arr=(((data.multiUse && data.multiUse.consumers) ?? data['multiUse.consumers']) ?? []);if(!Array.isArray(arr) || arr.length===0) return false;const keys=arr.map(c=>c && c.key).filter(Boolean);if(keys.length!==arr.length) return false;if((new Set(keys)).size!==keys.length) return false;return arr.every(c => !!c.setAKey || !!c.setWKey);})()",
+          "validatorErrorText": "Multi-Use consumers: Add at least one consumer with unique Key and a setpoint DP key (A or W).",
+          "validatorNoSaveOnError": true
+        }
+      }
+    },
+    "tab_datapoints": {
+      "type": "panel",
+      "label": "Datapoints",
+      "items": {
+        "divider_dps": {
+          "type": "divider",
+          "label": "Universal Datapoints"
+        },
+        "datapoints.info": {
+          "type": "staticText",
+          "text": "Hier definierst du herstellerunabhängige Datenpunkte (Key → Objekt-ID). Tipp: nutze z.B. ps.gridPowerW, ps.baseLoadW, ps.pvW, ps.batteryW, cm.tariffBudgetW, cm.gridChargeAllowed, tarif.preisAktuellEurProKwh."
+        },
+        "globalDatapoints": {
+          "type": "table",
+          "label": "Global datapoints (manufacturer-independent mapping)",
+          "items": [
+            {
+              "type": "text",
+              "width": "15%",
+              "attr": "key",
+              "title": "Key (unique)",
+              "filter": true,
+              "sort": true
+            },
+            {
+              "type": "text",
+              "width": "15%",
+              "attr": "name",
+              "title": "Name",
+              "filter": true,
+              "sort": true
+            },
+            {
+              "type": "objectId",
+              "width": "30%",
+              "attr": "objectId",
+              "title": "ioBroker Object ID",
+              "types": [
+                "state"
+              ],
+              "filter": true
+            },
+            {
+              "type": "select",
+              "options": [
+                {
+                  "label": "number",
+                  "value": "number"
+                },
+                {
+                  "label": "boolean",
+                  "value": "boolean"
+                },
+                {
+                  "label": "string",
+                  "value": "string"
+                }
+              ],
+              "width": "10%",
+              "attr": "dataType",
+              "title": "Type",
+              "expertMode": true,
+              "filter": true
+            },
+            {
+              "type": "select",
+              "options": [
+                {
+                  "label": "read",
+                  "value": "read"
+                },
+                {
+                  "label": "write",
+                  "value": "write"
+                },
+                {
+                  "label": "both",
+                  "value": "both"
+                }
+              ],
+              "width": "10%",
+              "attr": "direction",
+              "title": "R/W",
+              "expertMode": true
+            },
+            {
+              "type": "text",
+              "width": "6%",
+              "attr": "unit",
+              "title": "Unit",
+              "expertMode": true,
+              "filter": true
+            },
+            {
+              "type": "number",
+              "width": "6%",
+              "attr": "scale",
+              "title": "Scale"
+            },
+            {
+              "type": "number",
+              "width": "6%",
+              "attr": "offset",
+              "title": "Offset",
+              "expertMode": true
+            },
+            {
+              "type": "checkbox",
+              "width": "6%",
+              "attr": "invert",
+              "title": "Invert"
+            },
+            {
+              "type": "number",
+              "width": "6%",
+              "attr": "deadband",
+              "title": "Deadband",
+              "expertMode": true
+            },
+            {
+              "type": "number",
+              "width": "6%",
+              "attr": "min",
+              "title": "Min",
+              "expertMode": true
+            },
+            {
+              "type": "number",
+              "width": "6%",
+              "attr": "max",
+              "title": "Max",
+              "expertMode": true
+            },
+            {
+              "type": "text",
+              "width": "20%",
+              "attr": "note",
+              "title": "Note",
+              "expertMode": true
+            }
+          ],
+          "compact": true,
+          "uniqueColumns": [
+            "key"
+          ]
+        }
+      }
     }
+  }
 }

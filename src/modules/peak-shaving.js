@@ -387,6 +387,8 @@ class PeakShavingModule extends BaseModule {
             else reason = ReasonCodes.UNKNOWN;
         }
 
+        let availableForControlledW = 0;
+
         // Dynamic diagnostics
         if (mode === 'dynamic') {
             const baseLoadW = this.dp.getNumber('ps.baseLoadW', 0) || 0;
@@ -395,7 +397,7 @@ class PeakShavingModule extends BaseModule {
 
             // A heuristic: baseLoad minus PV minus (discharging battery positive?) user-defined conventions differ.
             // We store values as-is and compute a conservative available budget.
-            const availableForControlledW = Math.max(0, limitW - Math.max(0, baseLoadW - pvW - batteryW));
+            availableForControlledW = Math.max(0, limitW - Math.max(0, baseLoadW - pvW - batteryW));
 
             await this.adapter.setStateAsync('peakShaving.dynamic.allowedPowerW', typeof allowedPowerW === 'number' ? allowedPowerW : 0, true);
             await this.adapter.setStateAsync('peakShaving.dynamic.reserveW', reserveW || 0, true);

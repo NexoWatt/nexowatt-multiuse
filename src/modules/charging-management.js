@@ -1143,7 +1143,7 @@ if (components.length) {
                     enableKey: w.enableKey || '',
                 };
 
-                const res = await applySetpoint({ adapter: this.adapter, dp: this.dp }, consumer, { targetW, targetA, basis: w.controlBasis });
+                const res = await applySetpoint({ adapter: this.adapter, dp: this.dp }, consumer, { targetW: cmdW, targetA: cmdA, basis: w.controlBasis });
                 applied = !!res?.applied;
                 applyStatus = String(res?.status || (applied ? 'applied' : 'write_failed'));
                 applyWrites = res?.writes || null;
@@ -1170,8 +1170,10 @@ debugAlloc.push({
                 priority: w.priority,
                 controlBasis: w.controlBasis,
                 chargerType: w.chargerType,
-                targetW,
-                targetA,
+                rawTargetW: targetW,
+                rawTargetA: targetA,
+                targetW: cmdW,
+                targetA: cmdA,
                 applied,
                 applyStatus,
                 applyWrites,

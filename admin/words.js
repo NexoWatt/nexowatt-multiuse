@@ -97,6 +97,14 @@ systemDictionary = {
         'en': 'Multi-Use',
         'de': 'Multi-Use'
     },
+    'tab_datapoints': {
+        'en': 'Datapoints',
+        'de': 'Datenpunkte'
+    },
+    'Datapoints': {
+        'en': 'Datapoints',
+        'de': 'Datenpunkte'
+    },
     'Phase L1 current (A) - State ID': {
         'en': 'Phase L1 current (A) - State ID',
         'de': 'Phase L1 Strom (A) - State ID'
@@ -738,4 +746,36 @@ systemDictionary = {
     'en': 'Step (W)',
     'de': 'Schritt (W)'
 },
+    'NexoWatt VIS integration': {
+        'en': 'NexoWatt VIS integration',
+        'de': 'NexoWatt VIS Integration'
+    },
+    'NexoWatt VIS instance': {
+        'en': 'NexoWatt VIS instance',
+        'de': 'NexoWatt VIS-Instanz'
+    },
+    'RFID whitelist (VIS) - State ID': {
+        'en': 'RFID whitelist (VIS) - State ID',
+        'de': 'RFID Whitelist (VIS) – State-ID'
+    },
+    'Current tariff price (€/kWh) - State ID (optional)': {
+        'en': 'Current tariff price (€/kWh) - State ID (optional)',
+        'de': 'Aktueller Tarifpreis (€/kWh) – State-ID (optional)'
+    },
+    'Connect this adapter to NexoWatt VIS. Default: nexowatt-vis.0. Tariff is read from <instance>.settings.*. RFID whitelist is used by Charging Management (MU8.2).': {
+        'en': 'Connect this adapter to NexoWatt VIS. Default: nexowatt-vis.0. Tariff is read from <instance>.settings.*. RFID whitelist is used by Charging Management (MU8.2).',
+        'de': 'Verknüpft diesen Adapter mit der NexoWatt VIS. Standard: nexowatt-vis.0. Tarif wird aus <Instanz>.settings.* gelesen. RFID-Whitelist wird im Lademanagement genutzt (MU8.2).'
+    },
+    'ioBroker instance name of the NexoWatt VIS adapter (e.g. nexowatt-vis.0). Used to read VIS settings under <instance>.settings.*.': {
+        'en': 'ioBroker instance name of the NexoWatt VIS adapter (e.g. nexowatt-vis.0). Used to read VIS settings under <instance>.settings.*.',
+        'de': 'ioBroker-Instanzname des NexoWatt VIS Adapters (z. B. nexowatt-vis.0). Daraus werden VIS-Settings unter <Instanz>.settings.* gelesen.'
+    },
+    'Select the VIS state that contains the RFID whitelist (e.g. JSON array, CSV, or newline-separated list).': {
+        'en': 'Select the VIS state that contains the RFID whitelist (e.g. JSON array, CSV, or newline-separated list).',
+        'de': 'Wähle den VIS-Datenpunkt mit der RFID-Whitelist (z. B. JSON-Liste, CSV oder zeilenweise).'
+    },
+    'Optional: current price from a provider. If set, it is used for the tariff grid-charge gate. If empty, you can still map it via the global datapoints table (tarif.preisAktuellEurProKwh).': {
+        'en': 'Optional: current price from a provider. If set, it is used for the tariff grid-charge gate. If empty, you can still map it via the global datapoints table (tarif.preisAktuellEurProKwh).',
+        'de': 'Optional: Aktueller Preis vom Provider. Wenn gesetzt, wird er für die Tarif-Netzlade-Freigabe genutzt. Wenn leer, kann er weiterhin über die globale Datenpunkt-Tabelle gemappt werden (tarif.preisAktuellEurProKwh).'
+    },
 };

@@ -48,16 +48,23 @@ class TarifVisModule extends BaseModule {
         await mk('tarif.preisGrenzeEurProKwh', 'Tarif Preisgrenze (€/kWh, VIS)', 'number', 'value');
         await mk('tarif.preisAktuellEurProKwh', 'Tarif Preis aktuell (€/kWh, Provider)', 'number', 'value');
         await mk('tarif.netzLadenErlaubt', 'Netzladung erlaubt (Tarif-Logik)', 'boolean', 'indicator');
-
         // VIS-Settings als Datenpunkte registrieren (nur wenn dp-Registry vorhanden ist)
         if (this.dp && typeof this.dp.upsert === 'function') {
-            // Eingänge aus der VIS
-            await this.dp.upsert({ key: 'vis.settings.dynamicTariff', objectId: 'nexowatt-vis.0.settings.dynamicTariff' });
-            await this.dp.upsert({ key: 'vis.settings.tariffMode', objectId: 'nexowatt-vis.0.settings.tariffMode' });
-            await this.dp.upsert({ key: 'vis.settings.price', objectId: 'nexowatt-vis.0.settings.price' });
-            await this.dp.upsert({ key: 'vis.settings.priority', objectId: 'nexowatt-vis.0.settings.priority' });
-            await this.dp.upsert({ key: 'vis.settings.storagePower', objectId: 'nexowatt-vis.0.settings.storagePower' });
-            await this.dp.upsert({ key: 'vis.settings.evcsMaxPower', objectId: 'nexowatt-vis.0.settings.evcsMaxPower' });
+            const visInst = this._getVisInstance();
+
+            // Eingänge aus der VIS (Tarif-UI)
+            await this.dp.upsert({ key: 'vis.settings.dynamicTariff', objectId: `${visInst}.settings.dynamicTariff` });
+            await this.dp.upsert({ key: 'vis.settings.tariffMode', objectId: `${visInst}.settings.tariffMode` });
+            await this.dp.upsert({ key: 'vis.settings.price', objectId: `${visInst}.settings.price` });
+            await this.dp.upsert({ key: 'vis.settings.priority', objectId: `${visInst}.settings.priority` });
+            await this.dp.upsert({ key: 'vis.settings.storagePower', objectId: `${visInst}.settings.storagePower` });
+            await this.dp.upsert({ key: 'vis.settings.evcsMaxPower', objectId: `${visInst}.settings.evcsMaxPower` });
+
+            // Optional: aktueller Tarifpreis direkt als State-ID (ohne globale DP-Tabelle)
+            const priceCurrentId = this._getVisPriceCurrentId();
+            if (priceCurrentId) {
+                await this.dp.upsert({ key: 'tarif.preisAktuellEurProKwh', objectId: priceCurrentId });
+            }
 
             // Ausgabe für das Ladepark-Management (Tarif-Deckel)
             await this.dp.upsert({ key: 'cm.tariffBudgetW', objectId: `${this.adapter.namespace}.tarif.ladeparkLimitW` });
@@ -67,6 +74,18 @@ class TarifVisModule extends BaseModule {
                 await this.dp.upsert({ key: 'cm.gridChargeAllowed', objectId: `${this.adapter.namespace}.tarif.netzLadenErlaubt` });
             }
         }
+    }
+
+    _getVisInstance() {
+        const cfg = (this.adapter && this.adapter.config && this.adapter.config.vis) ? this.adapter.config.vis : null;
+        const inst = (cfg && typeof cfg.instance === 'string') ? cfg.instance.trim() : '';
+        return inst || 'nexowatt-vis.0';
+    }
+
+    _getVisPriceCurrentId() {
+        const cfg = (this.adapter && this.adapter.config && this.adapter.config.vis) ? this.adapter.config.vis : null;
+        const id = (cfg && typeof cfg.priceCurrentId === 'string') ? cfg.priceCurrentId.trim() : '';
+        return id || '';
     }
 
     _num(v, fallback = null) {

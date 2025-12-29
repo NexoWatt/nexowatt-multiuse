@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "nexowatt-multiuse",
-        "version": "0.0.39",
+        "version": "0.0.40",
         "news": {
             "0.0.1": {
                 "en": "Initial architecture skeleton: module manager and schedulers.",
@@ -75,6 +75,10 @@
             "0.0.38": {
                 "en": "MU7.8: Tariff grid-charge gate (cm.gridChargeAllowed), PV-only enforcement for EVCS budgets, storage respects tariff gate; tariff module publishes current/limit price & allow flag.",
                 "de": "MU7.8: Tarif-Netzlade-Freigabe (cm.gridChargeAllowed), PV-only Erzwingung für EVCS-Budgets, Speicher respektiert Tarif-Sperre; Tarif-Modul publiziert aktuellen/Limit-Preis & Freigabe."
+            },
+            "0.0.40": {
+                "en": "MU8.1: Admin: add VIS integration fields (instance, RFID whitelist, optional current price) with objectId picker defaults.",
+                "de": "MU8.1: Admin: VIS-Integration ergänzt (VIS-Instanz, RFID-Whitelist, optional aktueller Preis) mit Objekt-Auswahl."
             }
         },
         "titleLang": {
@@ -189,6 +193,11 @@
             "reserveMinSocPct": 10,
             "pvEnabled": true,
             "pvExportThresholdW": 200
+        },
+        "vis": {
+            "instance": "nexowatt-vis.0",
+            "rfidWhitelistId": "",
+            "priceCurrentId": ""
         }
     },
     "objects": [],

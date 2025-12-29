@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.40 (2025-12-29)
+- MU8.1: Admin: VIS integration fields (VIS instance, RFID whitelist, optional current price) with objectId picker + defaults.
+- Tarif-VIS module now uses the configured VIS instance for reading settings.
+
+
 ## 0.0.39 (2025-12-27)
 * MU7.9: Admin: Datenpunkt-IDs per Objekt-Browser auswählbar (objectId-Picker) statt manuell tippen; betrifft globale DP-Tabelle sowie Peak/Charging/Storage-Mappings.
 
